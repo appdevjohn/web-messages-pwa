@@ -1,4 +1,5 @@
 import MessageView from './components/MessageView'
+import ComposeBox from './components/ComposeBox'
 
 function App() {
   return (
@@ -41,6 +42,12 @@ function App() {
               id: '3',
             },
           ]}
+        />
+        <ComposeBox
+          becameActive={() => {}}
+          disableUpload={true}
+          onUploadFile={() => {}}
+          sendMessage={(m) => console.log(m)}
         />
       </div>
     </>
