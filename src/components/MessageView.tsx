@@ -1,6 +1,6 @@
 import styled from 'styled-components'
-// import LoadingIndicator from '../LoadingIndicator/LoadingIndicator';
 
+import { MessageType } from '../types'
 import emptyProfilePic from '../assets/empty-profile-pic.png'
 
 const TextBubble = styled.div<{ $highlighted?: boolean; $delivered?: boolean }>`
@@ -77,16 +77,7 @@ type BlockProps = {
 }
 
 type ViewProps = {
-  messages: {
-    id: string
-    userId: string
-    timestamp: Date
-    content: string
-    type: string
-    userProfilePic: string
-    userFullName: string
-    delivered: string
-  }[]
+  messages: MessageType[]
   highlightId: string
   showLoadOlderMessagesButton: boolean
   onLoadOlderMessages: () => void

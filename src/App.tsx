@@ -1,7 +1,31 @@
+import { useState } from 'react'
+
+import { MessageType } from './types'
 import MessageView from './components/MessageView'
 import ComposeBox from './components/ComposeBox'
 
 function App() {
+  const [messages, setMessages] = useState<MessageType[]>([])
+
+  const sendMessageHandler = (messageContent: string) => {
+    setMessages((prevMessages) => {
+      const copy = prevMessages.map((m) => ({ ...m }))
+      return [
+        ...copy,
+        {
+          content: messageContent,
+          delivered: 'delivered',
+          timestamp: new Date(),
+          type: 'text',
+          userFullName: 'John Champion',
+          userProfilePic: '',
+          userId: '1',
+          id: String(prevMessages.length),
+        },
+      ]
+    })
+  }
+
   return (
     <>
       <div>
@@ -10,44 +34,13 @@ function App() {
           isLoadingOlderMessages={false}
           onLoadOlderMessages={() => {}}
           showLoadOlderMessagesButton={false}
-          messages={[
-            {
-              content: 'First Message',
-              delivered: 'delivered',
-              timestamp: new Date(),
-              type: 'text',
-              userFullName: 'John Champion',
-              userProfilePic: '',
-              userId: '1',
-              id: '1',
-            },
-            {
-              content: 'Second Message',
-              delivered: 'delivered',
-              timestamp: new Date(),
-              type: 'text',
-              userFullName: 'John Champion',
-              userProfilePic: '',
-              userId: '1',
-              id: '2',
-            },
-            {
-              content: 'Third Message',
-              delivered: 'delivered',
-              timestamp: new Date(),
-              type: 'text',
-              userFullName: 'Kyle Champion',
-              userProfilePic: '',
-              userId: '2',
-              id: '3',
-            },
-          ]}
+          messages={messages}
         />
         <ComposeBox
           becameActive={() => {}}
           disableUpload={true}
           onUploadFile={() => {}}
-          sendMessage={(m) => console.log(m)}
+          sendMessage={sendMessageHandler}
         />
       </div>
     </>
