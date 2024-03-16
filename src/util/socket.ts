@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client'
 
-const URL = 'http://localhost:8000/'
+const URL = import.meta.env.VITE_API_BASE_URL
 
 export default io(URL)
