@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
+import UserContext, { UserType } from './util/userContext'
 import ConversationView from './pages/Conversation'
 import NewConversation from './pages/NewConversation'
 
@@ -15,7 +17,13 @@ const router = createBrowserRouter([
 ])
 
 function App() {
-  return <RouterProvider router={router} />
+  const [user, setUser] = useState<UserType>({ name: '', avatar: '' })
+
+  return (
+    <UserContext.Provider value={[user, setUser]}>
+      <RouterProvider router={router} />
+    </UserContext.Provider>
+  )
 }
 
 export default App
