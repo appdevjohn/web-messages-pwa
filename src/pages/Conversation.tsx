@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 
 import { MessageType } from '../types'
 import socket from '../util/socket'
+import UserContext from '../util/userContext'
 import MessageView from '../components/MessageView'
 import ComposeBox from '../components/ComposeBox'
 
 export default function ConversationView() {
   const { convoId } = useParams()
+  const [user, _] = useContext(UserContext)
 
   const [isConnected, setIsConnected] = useState(socket.connected)
   const [messages, setMessages] = useState<MessageType[]>([])
@@ -20,12 +22,12 @@ export default function ConversationView() {
     const onMessages = (msgs: any[]) => {
       const parsedMessages: MessageType[] = msgs.map((msg) => ({
         id: msg['id'],
-        userId: 'TODO',
-        timestamp: msg['createdAt'],
+        userId: `${msg['senderName']}-${msg['senderAvatar']}`,
+        timestamp: new Date(msg['createdAt']),
         content: msg['content'],
         type: msg['type'],
-        userProfilePic: '',
-        userFullName: 'TODO',
+        userProfilePic: msg['senderAvatar'],
+        userFullName: msg['senderName'],
         delivered: 'delivered',
       }))
       setMessages(parsedMessages)
@@ -46,15 +48,15 @@ export default function ConversationView() {
     }
     const onUpdate = (newMessage: any) => {
       setMessages((msgs) => {
-        const messagesCopy = JSON.parse(JSON.stringify(msgs))
+        const messagesCopy = msgs.map((m) => ({ ...m }))
         messagesCopy.push({
           id: newMessage['id'],
-          userId: 'TODO',
-          timestamp: newMessage['createdAt'],
+          userId: `${newMessage['senderName']}-${newMessage['senderAvatar']}`,
+          timestamp: new Date(newMessage['createdAt']),
           content: newMessage['content'],
           type: newMessage['type'],
-          userProfilePic: '',
-          userFullName: 'TODO',
+          userProfilePic: newMessage['senderAvatar'],
+          userFullName: newMessage['senderName'],
           delivered: 'delivered',
         })
         return messagesCopy
@@ -87,6 +89,8 @@ export default function ConversationView() {
       socket.emit('send-message', {
         convoId: convoId,
         content: sendingMessage.content,
+        userName: user.name,
+        userAvatar: user.avatar,
       })
       setSendingMessage(undefined)
     }
@@ -98,9 +102,9 @@ export default function ConversationView() {
       delivered: 'not-delivered',
       timestamp: new Date(),
       type: 'text',
-      userFullName: 'TODO',
-      userProfilePic: '',
-      userId: 'TODO',
+      userFullName: user.name,
+      userProfilePic: user.avatar,
+      userId: `${user.name}-${user.avatar}`,
       id: Math.random().toString(),
     })
   }
@@ -109,7 +113,7 @@ export default function ConversationView() {
     <>
       <div>
         <MessageView
-          highlightId='1'
+          highlightId={`${user.name}-${user.avatar}`}
           isLoadingOlderMessages={false}
           onLoadOlderMessages={() => {}}
           showLoadOlderMessagesButton={false}

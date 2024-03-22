@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import UserContext, { UserType } from './util/userContext'
@@ -18,6 +18,19 @@ const router = createBrowserRouter([
 
 function App() {
   const [user, setUser] = useState<UserType>({ name: '', avatar: '' })
+
+  useEffect(() => {
+    const name = localStorage.getItem('name') || ''
+    const avatar = localStorage.getItem('avatar') || ''
+    setUser({ name, avatar })
+  }, [])
+
+  // useEffect(() => {
+  //   if (user.name.length > 0 || user.avatar.length > 0) {
+  //     localStorage.setItem('name', user.name)
+  //     localStorage.setItem('avatar', user.avatar)
+  //   }
+  // }, [user])
 
   return (
     <UserContext.Provider value={[user, setUser]}>
