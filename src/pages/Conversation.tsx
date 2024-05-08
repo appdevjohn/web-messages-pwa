@@ -6,10 +6,11 @@ import socket from '../util/socket'
 import UserContext from '../util/userContext'
 import MessageView from '../components/MessageView'
 import ComposeBox from '../components/ComposeBox'
+import EditProfile from '../components/EditProfile'
 
 export default function ConversationView() {
   const { convoId } = useParams()
-  const [user, _] = useContext(UserContext)
+  const [user, setUser] = useContext(UserContext)
 
   const [isConnected, setIsConnected] = useState(socket.connected)
   const [messages, setMessages] = useState<MessageType[]>([])
@@ -111,6 +112,12 @@ export default function ConversationView() {
 
   return (
     <>
+      {user.name.length === 0 && (
+        <EditProfile
+          user={user}
+          onChangeUser={({ name, avatar }) => setUser({ name, avatar })}
+        />
+      )}
       <div>
         <MessageView
           highlightId={`${user.name}-${user.avatar}`}

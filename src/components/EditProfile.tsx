@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import styled from 'styled-components'
+import { UserType } from '../util/userContext'
 
 const Container = styled.div`
   padding: 4px 8px;
@@ -39,16 +41,15 @@ const AvatarOption = styled.button<{ $selected?: boolean }>`
 `
 
 const EditProfile = ({
-  username,
-  avatar,
-  onChangeName,
-  onChangeAvatar,
+  user,
+  onChangeUser,
 }: {
-  username: string
-  avatar: string
-  onChangeName: (value: string) => void
-  onChangeAvatar: (value: string) => void
+  user: UserType
+  onChangeUser: (value: UserType) => void
 }) => {
+  const [name, setName] = useState(user?.name || '')
+  const [avatar, setAvatar] = useState(user?.avatar || '')
+
   return (
     <Container>
       <div style={{ marginBottom: '1rem' }}>
@@ -57,8 +58,8 @@ const EditProfile = ({
           name='username'
           type='text'
           placeholder='heyitsme'
-          value={username}
-          onChange={(e) => onChangeName(e.target.value)}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
       </div>
       <div>
@@ -74,10 +75,10 @@ const EditProfile = ({
             'flamingo',
             'copperhead',
           ].map((a) => (
-            <AvatarContainer>
+            <AvatarContainer key={a}>
               <AvatarOption
                 $selected={a === avatar}
-                onClick={() => onChangeAvatar(a)}
+                onClick={() => setAvatar(a)}
               >
                 {a}
               </AvatarOption>
@@ -85,6 +86,7 @@ const EditProfile = ({
           ))}
         </AvatarGrid>
       </div>
+      <button onClick={() => onChangeUser({ name, avatar })}>Save</button>
     </Container>
   )
 }
