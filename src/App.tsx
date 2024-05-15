@@ -25,12 +25,12 @@ function App() {
     setUser({ name, avatar })
   }, [])
 
-  // useEffect(() => {
-  //   if (user.name.length > 0 || user.avatar.length > 0) {
-  //     localStorage.setItem('name', user.name)
-  //     localStorage.setItem('avatar', user.avatar)
-  //   }
-  // }, [user])
+  useEffect(() => {
+    if (user.name.length > 0 || user.avatar.length > 0) {
+      localStorage.setItem('name', user.name)
+      localStorage.setItem('avatar', user.avatar)
+    }
+  }, [user])
 
   return (
     <UserContext.Provider value={[user, setUser]}>

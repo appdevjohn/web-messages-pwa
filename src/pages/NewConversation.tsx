@@ -81,16 +81,9 @@ export default function NewConversation() {
           onChange={(e) => setConvoName(e.target.value)}
         />
       </InputContainer>
-      <EditProfile
-        username={user.name}
-        avatar={user.avatar}
-        onChangeName={(newName) =>
-          setUser((current) => ({ name: newName, avatar: current.avatar }))
-        }
-        onChangeAvatar={(newAvatar) =>
-          setUser((current) => ({ name: current.name, avatar: newAvatar }))
-        }
-      />
+      {!user && (
+        <EditProfile user={user} onChangeUser={(user) => setUser(user)} />
+      )}
       <ButtonContainer>
         <Button onClick={submitHandler}>Create</Button>
       </ButtonContainer>
