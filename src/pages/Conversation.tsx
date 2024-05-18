@@ -5,14 +5,18 @@ import { MessageType } from '../types'
 import socket from '../util/socket'
 import UserContext from '../util/userContext'
 import MessageView from '../components/MessageView'
+import NavBar from '../components/NavBar'
 import ComposeBox from '../components/ComposeBox'
 import EditProfile from '../components/EditProfile'
+import { MessagesPayloadType } from '../types/index'
 
 export default function ConversationView() {
   const { convoId } = useParams()
   const [user, setUser] = useContext(UserContext)
+  const [shouldEditUser, setShouldEditUser] = useState(false)
 
   const [isConnected, setIsConnected] = useState(socket.connected)
+  const [convoName, setConvoName] = useState('')
   const [messages, setMessages] = useState<MessageType[]>([])
   const [sendingMessage, setSendingMessage] = useState<MessageType>()
 
@@ -20,8 +24,8 @@ export default function ConversationView() {
   useEffect(() => {
     const onConnect = () => setIsConnected(true)
     const onDisconnect = () => setIsConnected(false)
-    const onMessages = (msgs: any[]) => {
-      const parsedMessages: MessageType[] = msgs.map((msg) => ({
+    const onMessages = (payload: MessagesPayloadType) => {
+      const parsedMessages: MessageType[] = payload.messages.map((msg) => ({
         id: msg['id'],
         userId: `${msg['senderName']}-${msg['senderAvatar']}`,
         timestamp: new Date(msg['createdAt']),
@@ -32,6 +36,7 @@ export default function ConversationView() {
         delivered: 'delivered',
       }))
       setMessages(parsedMessages)
+      setConvoName(payload.conversation['name'])
     }
     const onResponse = (payload: any) => {
       const eventType = payload['event']
@@ -112,13 +117,17 @@ export default function ConversationView() {
 
   return (
     <>
-      {user.name.length === 0 && (
+      {(user.name.length === 0 || shouldEditUser) && (
         <EditProfile
           user={user}
-          onChangeUser={({ name, avatar }) => setUser({ name, avatar })}
+          onChangeUser={({ name, avatar }) => {
+            setUser({ name, avatar })
+            setShouldEditUser(false)
+          }}
         />
       )}
       <div>
+        <NavBar title={convoName} onUserClick={() => setShouldEditUser(true)} />
         <MessageView
           highlightId={`${user.name}-${user.avatar}`}
           isLoadingOlderMessages={false}

@@ -1,10 +1,8 @@
-import { useState, useContext } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
-import UserContext from '../util/userContext'
 import restAPI from '../util/rest'
-import EditProfile from '../components/EditProfile'
 
 const Container = styled.div`
   display: flex;
@@ -55,7 +53,6 @@ const Button = styled.button`
 
 export default function NewConversation() {
   const navigate = useNavigate()
-  const [user, setUser] = useContext(UserContext)
 
   const [convoName, setConvoName] = useState('')
 
@@ -81,9 +78,6 @@ export default function NewConversation() {
           onChange={(e) => setConvoName(e.target.value)}
         />
       </InputContainer>
-      {!user && (
-        <EditProfile user={user} onChangeUser={(user) => setUser(user)} />
-      )}
       <ButtonContainer>
         <Button onClick={submitHandler}>Create</Button>
       </ButtonContainer>

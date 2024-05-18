@@ -55,7 +55,8 @@ const BlockSenderName = styled.div`
 
 const View = styled.div`
   width: calc(100% - 30px);
-  margin-bottom: 84px;
+  margin-bottom: 92px;
+  margin-top: 80px;
 `
 
 const ViewLoadMessagesButtonContainer = styled.div`

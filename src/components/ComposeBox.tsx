@@ -12,7 +12,6 @@ const Container = styled.div<{ $active?: boolean }>`
     props.$active
       ? 'height: 76px'
       : 'calc(76px + env(safe-area-inset-bottom))'};
-  width: 100%;
   background-color: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(5px);
 `

@@ -8,3 +8,8 @@ export type MessageType = {
   userFullName: string
   delivered: string
 }
+
+export type MessagesPayloadType = {
+  messages: any[]
+  conversation: any
+}

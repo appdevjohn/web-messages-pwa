@@ -2,12 +2,27 @@ import { useState } from 'react'
 import styled from 'styled-components'
 import { UserType } from '../util/userContext'
 
+const Backdrop = styled.div`
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  backdrop-filter: blur(10px) brightness(75%);
+  -webkit-backdrop-filter: blur(10px) brightness(75%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+`
+
 const Container = styled.div`
   padding: 4px 8px;
   margin: 16px 0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   border-radius: 4px;
   width: 320px;
+  background-color: white;
 `
 
 const Input = styled.input`
@@ -51,43 +66,45 @@ const EditProfile = ({
   const [avatar, setAvatar] = useState(user?.avatar || '')
 
   return (
-    <Container>
-      <div style={{ marginBottom: '1rem' }}>
-        <div>Screen Name</div>
-        <Input
-          name='username'
-          type='text'
-          placeholder='heyitsme'
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </div>
-      <div>
-        <div>Avatar</div>
-        <AvatarGrid>
-          {[
-            'eagle',
-            'bison',
-            'moose',
-            'bear',
-            'alligator',
-            'groundhog',
-            'flamingo',
-            'copperhead',
-          ].map((a) => (
-            <AvatarContainer key={a}>
-              <AvatarOption
-                $selected={a === avatar}
-                onClick={() => setAvatar(a)}
-              >
-                {a}
-              </AvatarOption>
-            </AvatarContainer>
-          ))}
-        </AvatarGrid>
-      </div>
-      <button onClick={() => onChangeUser({ name, avatar })}>Save</button>
-    </Container>
+    <Backdrop>
+      <Container>
+        <div style={{ marginBottom: '1rem' }}>
+          <div>Screen Name</div>
+          <Input
+            name='username'
+            type='text'
+            placeholder='heyitsme'
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <div>
+          <div>Avatar</div>
+          <AvatarGrid>
+            {[
+              'eagle',
+              'bison',
+              'moose',
+              'bear',
+              'alligator',
+              'groundhog',
+              'flamingo',
+              'copperhead',
+            ].map((a) => (
+              <AvatarContainer key={a}>
+                <AvatarOption
+                  $selected={a === avatar}
+                  onClick={() => setAvatar(a)}
+                >
+                  {a}
+                </AvatarOption>
+              </AvatarContainer>
+            ))}
+          </AvatarGrid>
+        </div>
+        <button onClick={() => onChangeUser({ name, avatar })}>Save</button>
+      </Container>
+    </Backdrop>
   )
 }
 
