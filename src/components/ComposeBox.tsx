@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import styled from 'styled-components'
 
+import IconButton from './IconButton'
 import fileUpload from '../assets/file-upload.png'
 
 const Container = styled.div<{ $active?: boolean }>`
@@ -14,6 +15,7 @@ const Container = styled.div<{ $active?: boolean }>`
       : 'calc(76px + env(safe-area-inset-bottom))'};
   background-color: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 `
 
 const Content = styled.div`
@@ -25,25 +27,8 @@ const Content = styled.div`
 
 const UploadButtonContainer = styled.div`
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-`
-
-const UploadButton = styled.button`
-  display: inline-block;
-  height: 44px;
-  width: 44px;
-  border-radius: 22px;
-  border: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  background-color: var(--content-background);
-
-  & img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
 `
 
 const ComposeArea = styled.div`
@@ -106,20 +91,20 @@ const ComposeBox = ({
     <Container $active={active}>
       <Content>
         <div></div>
+        <input
+          type='file'
+          onChange={onUploadFile}
+          ref={uploadRef}
+          style={{ display: 'none' }}
+        />
         <UploadButtonContainer>
-          <UploadButton
+          <IconButton
+            icon={fileUpload}
+            alt='File Upload'
+            disabled={disableUpload}
             onClick={() => {
               uploadRef.current && uploadRef.current.click()
             }}
-            disabled={disableUpload}
-          >
-            <img src={fileUpload} alt='File Upload' />
-          </UploadButton>
-          <input
-            type='file'
-            onChange={onUploadFile}
-            ref={uploadRef}
-            style={{ display: 'none' }}
           />
         </UploadButtonContainer>
         <ComposeArea>

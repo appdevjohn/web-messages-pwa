@@ -1,6 +1,9 @@
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
+import IconButton from './IconButton'
+import profilePic from '../assets/empty-profile-pic.png'
+
 const Container = styled.div`
   display: flex;
   flex-direction: row;
@@ -11,9 +14,20 @@ const Container = styled.div`
   left: 0;
   right: 0;
   height: 64px;
+  padding: 0 1rem;
   border: 0;
   box-shadow: 0px 2px 2px #cccccc;
   background-color: white;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: rgb(30, 30, 30);
+    box-shadow: 0px 2px 2px black;
+  }
+`
+
+const Title = styled.div`
+  font-size: 1.2rem;
+  font-weight: 700;
 `
 
 type NavBar = {
@@ -26,9 +40,21 @@ const NavBar = ({ title = '', onUserClick }: NavBar) => {
 
   return (
     <Container>
-      <div>{title}</div>
-      <button onClick={onUserClick}>User</button>
-      <button onClick={() => navigate('/')}>Exit</button>
+      <Title>{title}</Title>
+      <div>
+        <IconButton
+          icon={profilePic}
+          alt='Edit Profile'
+          onClick={onUserClick}
+          style={{ marginLeft: '8px' }}
+        />
+        <IconButton
+          icon={profilePic}
+          alt='Exit Chat'
+          onClick={() => navigate('/')}
+          style={{ marginLeft: '8px' }}
+        />
+      </div>
     </Container>
   )
 }

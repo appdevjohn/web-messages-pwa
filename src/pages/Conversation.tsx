@@ -84,6 +84,11 @@ export default function ConversationView() {
     }
   }, [])
 
+  // Scroll to bottom of page when new messages roll in.
+  useEffect(() => {
+    window.scrollTo(0, document.body.scrollHeight)
+  }, [messages])
+
   // Fetch messages when connected.
   useEffect(() => {
     socket.emit('get-messages', { convoId: convoId })
