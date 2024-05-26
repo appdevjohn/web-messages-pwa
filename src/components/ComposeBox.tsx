@@ -54,9 +54,9 @@ const ComposeInput = styled.input`
   text-align: left;
   cursor: pointer;
 
-  ::focus {
+  &:focus {
     outline: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.75);
     transition: all 0.1s ease-out;
   }
 
