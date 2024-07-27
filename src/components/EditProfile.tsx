@@ -131,15 +131,17 @@ const SaveButton = styled.button`
 const EditProfile = ({
   user,
   onChangeUser,
+  onDismiss,
 }: {
   user: UserType
   onChangeUser: (value: UserType) => void
+  onDismiss: () => void
 }) => {
   const [name, setName] = useState(user?.name || '')
   const [avatar, setAvatar] = useState(user?.avatar || '')
 
   return (
-    <Backdrop>
+    <Backdrop onClick={onDismiss}>
       <Container>
         <div style={{ marginBottom: '1rem', width: '100%' }}>
           <InputTitle>Screen Name</InputTitle>

@@ -2,7 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import IconButton from './IconButton'
-import profilePic from '../assets/empty-profile-pic.png'
+import editProfileIcon from '../assets/edit-account.png'
+import closeChatIcon from '../assets/close.png'
 
 const Container = styled.div`
   display: flex;
@@ -43,16 +44,18 @@ const NavBar = ({ title = '', onUserClick }: NavBar) => {
       <Title>{title}</Title>
       <div>
         <IconButton
-          icon={profilePic}
+          icon={editProfileIcon}
           alt='Edit Profile'
           onClick={onUserClick}
           style={{ marginLeft: '8px' }}
+          hasBorders={false}
         />
         <IconButton
-          icon={profilePic}
+          icon={closeChatIcon}
           alt='Exit Chat'
           onClick={() => navigate('/')}
           style={{ marginLeft: '8px' }}
+          hasBorders={false}
         />
       </div>
     </Container>

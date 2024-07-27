@@ -5,23 +5,28 @@ import styled from 'styled-components'
 import restAPI from '../util/rest'
 
 const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 75vh;
+  display: block;
+  padding: 3rem 8px 0 8px;
+  margin: 0;
 `
 
 const Title = styled.div`
-  text-align: center;
-  font-size: 1.5rem;
-  margin: 2rem 0 1rem 0;
+  text-align: left;
+  font-size: 2.5rem;
+  font-weight: 700;
+`
+
+const Description = styled.div`
+  text-align: left;
+  font-size: 1rem;
+  margin: 0.5rem 0 4rem 0;
 `
 
 const InputContainer = styled.div`
-  margin: 1rem 0;
-  text-align: center;
-  box-shadow: none;
+  display: grid;
+  grid-template-columns: 1fr 100px;
+  grid-template-rows: 44px;
+  column-gap: 24px;
 `
 
 const Input = styled.input`
@@ -30,11 +35,7 @@ const Input = styled.input`
   border: 1px solid gray;
   font-size: 1rem;
   padding: 6px 8px;
-  width: 300px;
-`
-
-const ButtonContainer = styled.div`
-  text-align: center;
+  width: 100%;
 `
 
 const Button = styled.button`
@@ -47,7 +48,6 @@ const Button = styled.button`
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
-  padding: 6px 8px;
   cursor: pointer;
 `
 
@@ -69,7 +69,11 @@ export default function NewConversation() {
 
   return (
     <Container>
-      <Title>New Conversation</Title>
+      <Title>OneTimeChat</Title>
+      <Description>
+        Create an annonomous chat with people whom you send a link. The chat
+        will disappear 30 days after the last message is sent.
+      </Description>
       <InputContainer>
         <Input
           type='text'
@@ -77,10 +81,8 @@ export default function NewConversation() {
           value={convoName}
           onChange={(e) => setConvoName(e.target.value)}
         />
-      </InputContainer>
-      <ButtonContainer>
         <Button onClick={submitHandler}>Create</Button>
-      </ButtonContainer>
+      </InputContainer>
     </Container>
   )
 }

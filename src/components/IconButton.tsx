@@ -1,13 +1,15 @@
 import styled from 'styled-components'
 
-const Button = styled.button`
+const Button = styled.button<{ $hasBorders: boolean }>`
   display: inline-block;
   height: 44px;
   width: 44px;
   border-radius: 22px;
   border: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  background-color: var(--content-background);
+  box-shadow: ${(props) =>
+    props.$hasBorders ? '0 2px 4px rgba(0, 0, 0, 0.5)' : 'none'};
+  background-color: ${(props) =>
+    props.$hasBorders ? 'var(--content-background)' : 'transparent'};
   cursor: pointer;
 
   & img {
@@ -21,6 +23,7 @@ type ButtonType = {
   icon: string
   alt: string
   onClick: () => void
+  hasBorders?: boolean
   disabled?: boolean
   style?: any
 }
@@ -29,11 +32,17 @@ const IconButton = ({
   icon,
   alt,
   onClick,
+  hasBorders = true,
   disabled = false,
   style = {},
 }: ButtonType) => {
   return (
-    <Button onClick={onClick} disabled={disabled} style={style}>
+    <Button
+      onClick={onClick}
+      disabled={disabled}
+      $hasBorders={hasBorders}
+      style={style}
+    >
       <img src={icon} alt={alt} />
     </Button>
   )

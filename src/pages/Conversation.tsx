@@ -129,6 +129,7 @@ export default function ConversationView() {
             setUser({ name, avatar })
             setShouldEditUser(false)
           }}
+          onDismiss={() => setShouldEditUser(false)}
         />
       )}
       <div>
