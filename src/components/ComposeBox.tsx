@@ -18,10 +18,11 @@ const Container = styled.div<{ $active?: boolean }>`
   -webkit-backdrop-filter: blur(5px);
 `
 
-const Content = styled.div`
+const Content = styled.div<{ $uploadEnabled: boolean }>`
   width: calc(100% - env(safe-area-inset-left) - env(safe-area-inset-right));
   display: grid;
-  grid-template-columns: 0px 44px 1fr 0px;
+  grid-template-columns: ${(props) =>
+    props.$uploadEnabled ? '0px 44px 1fr 0px' : '0px 1fr 0px'};
   column-gap: 10px;
 `
 
@@ -89,7 +90,7 @@ const ComposeBox = ({
 
   return (
     <Container $active={active}>
-      <Content>
+      <Content $uploadEnabled={!disableUpload}>
         <div></div>
         <input
           type='file'
@@ -97,16 +98,18 @@ const ComposeBox = ({
           ref={uploadRef}
           style={{ display: 'none' }}
         />
-        <UploadButtonContainer>
-          <IconButton
-            icon={fileUpload}
-            alt='File Upload'
-            disabled={disableUpload}
-            onClick={() => {
-              uploadRef.current && uploadRef.current.click()
-            }}
-          />
-        </UploadButtonContainer>
+        {!disableUpload && (
+          <UploadButtonContainer>
+            <IconButton
+              icon={fileUpload}
+              alt='File Upload'
+              disabled={disableUpload}
+              onClick={() => {
+                uploadRef.current && uploadRef.current.click()
+              }}
+            />
+          </UploadButtonContainer>
+        )}
         <ComposeArea>
           <ComposeInput
             type='text'
