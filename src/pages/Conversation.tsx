@@ -52,7 +52,6 @@ export default function ConversationView() {
   // Handle WebSocket events.
   useEffect(() => {
     const onError = (errorMessage: string) => {
-      console.log(errorMessage)
       if (errorMessage === 'Error: There is no conversation with that ID.') {
         setDoesChatExist(false)
       }
