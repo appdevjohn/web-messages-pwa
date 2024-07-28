@@ -1,7 +1,7 @@
 import styled from 'styled-components'
 
 import { MessageType } from '../types'
-import emptyProfilePic from '../assets/empty-profile-pic.png'
+import ICON_MAP from '../util/profileIcons'
 
 const TextBubble = styled.div<{ $highlighted?: boolean; $delivered?: boolean }>`
   display: inline-block;
@@ -36,16 +36,19 @@ const Block = styled.div`
 const BlockSenderImage = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
   margin-right: 8px;
+  height: 44px;
+  width: 44px;
+  border-radius: 22px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  background-color: var(--content-background);
 
   & img {
-    background-color: var(--content-background);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-    border-radius: 22px;
-    height: 44px;
-    width: 44px;
+    object-fit: contain;
+    height: 32px;
+    width: 32px;
   }
 `
 
@@ -73,6 +76,7 @@ type BubbleProps = {
 
 type BlockProps = {
   senderName: string
+  senderIcon: string
   highlighted: boolean
   messages: { content: string; type: string; delivered: string; id: string }[]
 }
@@ -111,7 +115,12 @@ const MessageBubble = ({
   }
 }
 
-const MessageBlock = ({ senderName, highlighted, messages }: BlockProps) => {
+const MessageBlock = ({
+  senderName,
+  senderIcon,
+  highlighted,
+  messages,
+}: BlockProps) => {
   let messageBubbles = messages.map((message) => {
     return (
       <MessageBubble
@@ -127,7 +136,7 @@ const MessageBlock = ({ senderName, highlighted, messages }: BlockProps) => {
   return (
     <Block>
       <BlockSenderImage>
-        <img src={emptyProfilePic} alt='Profile' />
+        <img src={ICON_MAP[senderIcon]} alt='Profile' />
       </BlockSenderImage>
       <div>
         <BlockSenderName>{senderName}</BlockSenderName>
@@ -191,6 +200,7 @@ const MessageView = ({
         return (
           <MessageBlock
             senderName={block.senderName}
+            senderIcon={block.senderImg}
             messages={block.messages}
             highlighted={block.senderId === highlightId}
             key={JSON.stringify(block.messages)}

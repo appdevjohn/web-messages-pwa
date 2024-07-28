@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { UserType } from '../util/userContext'
+import ICON_MAP from '../util/profileIcons'
 
 const appear = keyframes`
   from {
@@ -104,13 +105,20 @@ const AvatarContainer = styled.div`
 const AvatarOption = styled.button<{ $selected?: boolean }>`
   height: 44px;
   width: 44px;
+  padding: 0;
   border-radius: 22px;
-  background-color: gray;
+  background-color: ${(props) => (props.$selected ? 'gray' : '#CCCCCC')};
   appearance: none;
   border: none;
   drop-shadow: none;
   cursor: pointer;
   font-weight: ${(props) => (props.$selected ? '700' : '400')};
+
+  & img {
+    object-fit: contain;
+    height: 32px;
+    width: 32px;
+  }
 `
 
 const SaveButton = styled.button`
@@ -156,22 +164,13 @@ const EditProfile = ({
         <div>
           <InputTitle>Avatar</InputTitle>
           <AvatarGrid>
-            {[
-              'eagle',
-              'bison',
-              'moose',
-              'bear',
-              'alligator',
-              'groundhog',
-              'flamingo',
-              'copperhead',
-            ].map((a) => (
+            {Object.keys(ICON_MAP).map((a) => (
               <AvatarContainer key={a}>
                 <AvatarOption
                   $selected={a === avatar}
                   onClick={() => setAvatar(a)}
                 >
-                  {a}
+                  <img src={ICON_MAP[a]} alt={a} />
                 </AvatarOption>
               </AvatarContainer>
             ))}
