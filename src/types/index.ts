@@ -12,4 +12,5 @@ export type MessageType = {
 export type MessagesPayloadType = {
   messages: any[]
   conversation: any
+  daysRemaining: number
 }

@@ -44,6 +44,7 @@ export default function ConversationView() {
 
   const [isConnected, setIsConnected] = useState(socket.connected)
   const [convoName, setConvoName] = useState('')
+  const [daysRemaining, setDaysRemaining] = useState<number>()
   const [messages, setMessages] = useState<MessageType[]>([])
   const [sendingMessage, setSendingMessage] = useState<MessageType>()
 
@@ -71,6 +72,7 @@ export default function ConversationView() {
       }))
       setMessages(parsedMessages)
       setConvoName(payload.conversation['name'])
+      setDaysRemaining(payload.daysRemaining)
       setDoesChatExist(true)
     }
     const onResponse = (payload: any) => {
@@ -179,6 +181,13 @@ export default function ConversationView() {
               : doesChatExist
               ? convoName
               : ''
+          }
+          subtitle={
+            doesChatExist
+              ? `${daysRemaining} ${
+                  daysRemaining === 1 ? 'day' : 'days'
+                } remaining`
+              : undefined
           }
           onUserClick={() => setShouldEditUser(true)}
           disableEditProfile={!doesChatExist}

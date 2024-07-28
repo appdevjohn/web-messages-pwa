@@ -26,19 +26,34 @@ const Container = styled.div`
   }
 `
 
+const TitleStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+`
+
 const Title = styled.div`
   font-size: 1.2rem;
   font-weight: 700;
 `
 
+const Subtitle = styled.div`
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: gray;
+`
+
 type NavBar = {
   title: string
+  subtitle?: string
   onUserClick: () => void
   disableEditProfile: boolean
 }
 
 const NavBar = ({
   title = '',
+  subtitle,
   onUserClick,
   disableEditProfile = false,
 }: NavBar) => {
@@ -46,7 +61,10 @@ const NavBar = ({
 
   return (
     <Container>
-      <Title>{title}</Title>
+      <TitleStack>
+        <Title>{title}</Title>
+        {subtitle && <Subtitle>{subtitle}</Subtitle>}
+      </TitleStack>
       <div>
         {!disableEditProfile && (
           <IconButton
