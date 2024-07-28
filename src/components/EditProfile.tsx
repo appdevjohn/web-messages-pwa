@@ -142,7 +142,7 @@ const EditProfile = ({
 
   return (
     <Backdrop onClick={onDismiss}>
-      <Container>
+      <Container onClick={(e) => e.stopPropagation()}>
         <div style={{ marginBottom: '1rem', width: '100%' }}>
           <InputTitle>Screen Name</InputTitle>
           <Input
