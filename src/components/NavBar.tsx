@@ -34,22 +34,29 @@ const Title = styled.div`
 type NavBar = {
   title: string
   onUserClick: () => void
+  disableEditProfile: boolean
 }
 
-const NavBar = ({ title = '', onUserClick }: NavBar) => {
+const NavBar = ({
+  title = '',
+  onUserClick,
+  disableEditProfile = false,
+}: NavBar) => {
   const navigate = useNavigate()
 
   return (
     <Container>
       <Title>{title}</Title>
       <div>
-        <IconButton
-          icon={editProfileIcon}
-          alt='Edit Profile'
-          onClick={onUserClick}
-          style={{ marginLeft: '8px' }}
-          hasBorders={false}
-        />
+        {!disableEditProfile && (
+          <IconButton
+            icon={editProfileIcon}
+            alt='Edit Profile'
+            onClick={onUserClick}
+            style={{ marginLeft: '8px' }}
+            hasBorders={false}
+          />
+        )}
         <IconButton
           icon={closeChatIcon}
           alt='Exit Chat'
