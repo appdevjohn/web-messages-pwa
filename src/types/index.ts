@@ -1,3 +1,10 @@
+export type StoredConversationType = {
+  convoId: string
+  name: string
+  dateStored: Date
+  deletionDate: Date
+}
+
 export type MessageType = {
   id: string
   userId: string
@@ -12,5 +19,5 @@ export type MessageType = {
 export type MessagesPayloadType = {
   messages: any[]
   conversation: any
-  daysRemaining: number
+  deletionDate: Date
 }

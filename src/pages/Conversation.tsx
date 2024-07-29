@@ -2,14 +2,18 @@ import { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { MessageType } from '../types'
+import {
+  MessageType,
+  MessagesPayloadType,
+  StoredConversationType,
+} from '../types'
+import getDaysRemaining from '../util/daysRemaining'
 import socket from '../util/socket'
 import UserContext from '../util/userContext'
 import MessageView from '../components/MessageView'
 import NavBar from '../components/NavBar'
 import ComposeBox from '../components/ComposeBox'
 import EditProfile from '../components/EditProfile'
-import { MessagesPayloadType } from '../types/index'
 
 const ErrorViewContainer = styled.div`
   margin: 6rem auto 0 auto;
@@ -44,9 +48,12 @@ export default function ConversationView() {
 
   const [isConnected, setIsConnected] = useState(socket.connected)
   const [convoName, setConvoName] = useState('')
-  const [daysRemaining, setDaysRemaining] = useState<number>()
+  const [deletionDate, setDeletionDate] = useState<Date>()
   const [messages, setMessages] = useState<MessageType[]>([])
   const [sendingMessage, setSendingMessage] = useState<MessageType>()
+  const daysRemaining = deletionDate
+    ? getDaysRemaining(deletionDate, new Date())
+    : undefined
 
   const [doesChatExist, setDoesChatExist] = useState<boolean>()
 
@@ -72,7 +79,7 @@ export default function ConversationView() {
       }))
       setMessages(parsedMessages)
       setConvoName(payload.conversation['name'])
-      setDaysRemaining(payload.daysRemaining)
+      setDeletionDate(new Date(payload.deletionDate))
       setDoesChatExist(true)
     }
     const onResponse = (payload: any) => {
@@ -122,6 +129,27 @@ export default function ConversationView() {
       socket.off(`${convoId}`, onUpdate)
     }
   }, [])
+
+  // Store chat meta data in localStorage.
+  useEffect(() => {
+    if (convoId && deletionDate) {
+      const storedChatStrings = localStorage.getItem('prevous-chats')
+      const storedChats: StoredConversationType[] = storedChatStrings
+        ? JSON.parse(storedChatStrings)
+        : []
+
+      if (!storedChats.map((c) => c.convoId).includes(convoId)) {
+        storedChats.push({
+          convoId: convoId,
+          name: convoName,
+          dateStored: new Date(),
+          deletionDate: deletionDate,
+        })
+      }
+
+      localStorage.setItem('previous-chats', JSON.stringify(storedChats))
+    }
+  }, [convoId, deletionDate])
 
   // Scroll to bottom of page when new messages roll in.
   useEffect(() => {
