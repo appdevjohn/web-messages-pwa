@@ -133,7 +133,7 @@ export default function ConversationView() {
   // Store chat meta data in localStorage.
   useEffect(() => {
     if (convoId && deletionDate) {
-      const storedChatStrings = localStorage.getItem('prevous-chats')
+      const storedChatStrings = localStorage.getItem('previous-chats')
       const storedChats: StoredConversationType[] = storedChatStrings
         ? JSON.parse(storedChatStrings)
         : []

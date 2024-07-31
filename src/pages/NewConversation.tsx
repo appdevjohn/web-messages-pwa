@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import styled from 'styled-components'
 
 import restAPI from '../util/rest'
@@ -69,11 +69,24 @@ const Button = styled.button`
 
 const ListCell = styled.div`
   margin: 8px 0;
+  padding: 8px;
+  background-color: var(--content-background);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: #333333;
+  }
 `
 
 const ListCellTitle = styled.div`
   font-size: 1rem;
   font-weight: 400;
+  color: black;
+
+  @media (prefers-color-scheme: dark) {
+    color: white;
+  }
 `
 
 const ListCellSubtitle = styled.div`
@@ -83,19 +96,23 @@ const ListCellSubtitle = styled.div`
 `
 
 const PrevousChatCell = ({
+  convoId,
   name,
   daysRemaining,
 }: {
+  convoId: string
   name: string
   daysRemaining: number
 }) => {
   return (
-    <ListCell>
-      <ListCellTitle>{name}</ListCellTitle>
-      <ListCellSubtitle>{`${daysRemaining} ${
-        daysRemaining === 1 ? 'day' : 'days'
-      } remaining`}</ListCellSubtitle>
-    </ListCell>
+    <Link to={`/${convoId}`} style={{ textDecoration: 'none' }}>
+      <ListCell>
+        <ListCellTitle>{name}</ListCellTitle>
+        <ListCellSubtitle>{`${daysRemaining} ${
+          daysRemaining === 1 ? 'day' : 'days'
+        } remaining`}</ListCellSubtitle>
+      </ListCell>
+    </Link>
   )
 }
 
@@ -150,6 +167,7 @@ export default function NewConversation() {
         <Subtitle>Previous Chats</Subtitle>
         {previousConvos.map((c) => (
           <PrevousChatCell
+            convoId={c.convoId}
             name={c.name}
             daysRemaining={getDaysRemaining(c.deletionDate, new Date())}
           />
