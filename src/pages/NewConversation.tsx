@@ -125,11 +125,41 @@ export default function NewConversation() {
   >([])
 
   useEffect(() => {
-    const previousChatStrings = localStorage.getItem('previous-chats')
-    const previousChats: StoredConversationType[] = previousChatStrings
-      ? JSON.parse(previousChatStrings)
+    const getConvoData = async (
+      convoId: string
+    ): Promise<StoredConversationType> => {
+      const response = await restAPI.get(`/conversation/${convoId}`)
+      return {
+        convoId: response.data['conversation']['id'],
+        name: response.data['conversation']['name'],
+        dateStored: new Date(response.data['conversation']['updatedAt']),
+        deletionDate: new Date(response.data['deletionDate']),
+      }
+    }
+    const parseConvoIDs = async (
+      convoIDs: string[]
+    ): Promise<StoredConversationType[]> => {
+      const previousChats = []
+      for await (const id of convoIDs) {
+        const chat = await getConvoData(id)
+        previousChats.push(chat)
+      }
+      return previousChats
+    }
+
+    const previousChatString = localStorage.getItem('previous-chats')
+    const previousChatsIDs: string[] = previousChatString
+      ? JSON.parse(previousChatString)
       : []
-    setPreviousConvos(previousChats)
+
+    parseConvoIDs(previousChatsIDs)
+      .then((chats) => {
+        setPreviousConvos(chats)
+      })
+      .catch((error) => {
+        console.log(error)
+        setPreviousConvos([])
+      })
   }, [])
 
   const submitHandler = async () => {

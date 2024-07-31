@@ -134,17 +134,12 @@ export default function ConversationView() {
   useEffect(() => {
     if (convoId && deletionDate) {
       const storedChatStrings = localStorage.getItem('previous-chats')
-      const storedChats: StoredConversationType[] = storedChatStrings
+      const storedChats: string[] = storedChatStrings
         ? JSON.parse(storedChatStrings)
         : []
 
-      if (!storedChats.map((c) => c.convoId).includes(convoId)) {
-        storedChats.push({
-          convoId: convoId,
-          name: convoName,
-          dateStored: new Date(),
-          deletionDate: deletionDate,
-        })
+      if (!storedChats.includes(convoId)) {
+        storedChats.push(convoId)
       }
 
       localStorage.setItem('previous-chats', JSON.stringify(storedChats))
