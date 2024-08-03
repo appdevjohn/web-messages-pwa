@@ -2,11 +2,7 @@ import { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 import styled from 'styled-components'
 
-import {
-  MessageType,
-  MessagesPayloadType,
-  StoredConversationType,
-} from '../types'
+import { MessageType, MessagesPayloadType } from '../types'
 import getDaysRemaining from '../util/daysRemaining'
 import socket from '../util/socket'
 import UserContext from '../util/userContext'
@@ -52,7 +48,7 @@ export default function ConversationView() {
   const [messages, setMessages] = useState<MessageType[]>([])
   const [sendingMessage, setSendingMessage] = useState<MessageType>()
   const daysRemaining = deletionDate
-    ? getDaysRemaining(deletionDate, new Date())
+    ? getDaysRemaining(new Date(), deletionDate)
     : undefined
 
   const [doesChatExist, setDoesChatExist] = useState<boolean>()

@@ -125,15 +125,31 @@ export default function NewConversation() {
   >([])
 
   useEffect(() => {
+    const previousChatString = localStorage.getItem('previous-chats')
+    const previousChatsIDs: string[] = previousChatString
+      ? JSON.parse(previousChatString)
+      : []
+
     const getConvoData = async (
       convoId: string
     ): Promise<StoredConversationType> => {
-      const response = await restAPI.get(`/conversation/${convoId}`)
-      return {
-        convoId: response.data['conversation']['id'],
-        name: response.data['conversation']['name'],
-        dateStored: new Date(response.data['conversation']['updatedAt']),
-        deletionDate: new Date(response.data['deletionDate']),
+      try {
+        const response = await restAPI.get(`/conversation/${convoId}`)
+        return {
+          convoId: response.data['conversation']['id'],
+          name: response.data['conversation']['name'],
+          dateStored: new Date(response.data['conversation']['updatedAt']),
+          deletionDate: new Date(response.data['deletionDate']),
+        }
+      } catch (error: any) {
+        if (
+          error.response?.data?.['errorMessage'] ===
+          'This conversation has been deleted.'
+        ) {
+          throw new Error('This conversation has been deleted.')
+        } else {
+          throw new Error('Could not get this conversation.')
+        }
       }
     }
     const parseConvoIDs = async (
@@ -141,20 +157,22 @@ export default function NewConversation() {
     ): Promise<StoredConversationType[]> => {
       const previousChats = []
       for await (const id of convoIDs) {
-        const chat = await getConvoData(id)
-        previousChats.push(chat)
+        try {
+          const chat = await getConvoData(id)
+          previousChats.push(chat)
+        } catch (error) {
+          if (String(error) === 'Error: This conversation has been deleted.') {
+            previousChatsIDs.splice(previousChatsIDs.indexOf(id), 1)
+          }
+        }
       }
       return previousChats
     }
 
-    const previousChatString = localStorage.getItem('previous-chats')
-    const previousChatsIDs: string[] = previousChatString
-      ? JSON.parse(previousChatString)
-      : []
-
     parseConvoIDs(previousChatsIDs)
       .then((chats) => {
         setPreviousConvos(chats)
+        localStorage.setItem('previous-chats', JSON.stringify(previousChatsIDs))
       })
       .catch((error) => {
         console.log(error)
@@ -197,9 +215,10 @@ export default function NewConversation() {
         <Subtitle>Previous Chats</Subtitle>
         {previousConvos.map((c) => (
           <PrevousChatCell
+            key={c.convoId}
             convoId={c.convoId}
             name={c.name}
-            daysRemaining={getDaysRemaining(c.deletionDate, new Date())}
+            daysRemaining={getDaysRemaining(new Date(), c.deletionDate)}
           />
         ))}
       </Content>
