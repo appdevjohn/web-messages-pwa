@@ -5,11 +5,20 @@ import styled from 'styled-components'
 import restAPI from '../util/rest'
 import getDaysRemaining from '../util/daysRemaining'
 import { StoredConversationType } from '../types'
+import { ComposeInput } from '../components/ComposeBox'
+
+import creation from '../assets/creation.svg'
 
 const Header = styled.div`
   background-color: var(--accent-color);
-  color: white;
-  padding: 24px 8px 16px 8px;
+  padding: 16px 8px 16px 8px;
+  box-shadow: 0px 2px 2px #cccccc;
+  background-color: white;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: rgb(30, 30, 30);
+    box-shadow: 0px 2px 2px black;
+  }
 `
 
 const Content = styled.div`
@@ -17,17 +26,11 @@ const Content = styled.div`
   padding: 8px;
 `
 
-const Title = styled.div`
-  text-align: center;
-  font-size: 2.5rem;
+const Title = styled.div<{ $extended?: boolean }>`
+  text-align: left;
+  font-size: ${(props) => (props.$extended ? '2.5rem' : '2rem')};
   font-weight: 700;
-  margin-top: 1rem;
-`
-
-const Description = styled.div`
-  text-align: center;
-  font-size: 0.8rem;
-  margin: 1rem;
+  margin: ${(props) => (props.$extended ? '2rem 0 1.5rem 0' : 'inherit')};
 `
 
 const Subtitle = styled.div`
@@ -39,47 +42,50 @@ const Subtitle = styled.div`
 
 const InputContainer = styled.div`
   display: grid;
-  grid-template-columns: 1fr 100px;
+  grid-template-columns: 1fr 44px;
   grid-template-rows: 44px;
-  column-gap: 24px;
+  column-gap: 8px;
   margin-bottom: 2rem;
 `
 
-const Input = styled.input`
-  appearance: none;
-  border-radius: 8px;
-  border: 1px solid gray;
-  font-size: 1rem;
-  padding: 6px 8px;
-  width: 100%;
+const CreateInput = styled(ComposeInput)`
+  width: calc(100% - 32px);
 `
 
 const Button = styled.button`
   appearance: none;
   background-color: var(--accent-color);
   color: white;
-  border-radius: 8px;
-  box-shadow: none;
+  border-radius: 22px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   border: none;
   font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   cursor: pointer;
+  padding: 0;
+
+  & img {
+    height: 26px;
+    width: 26px;
+    object-fit: contain;
+    transform: translate(-1px, 2px);
+  }
 `
 
 const ListCell = styled.div`
   margin: 8px 0;
-  padding: 8px;
+  padding: 12px;
   background-color: var(--content-background);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  border-radius: 8px;
+  border-radius: 12px;
 
   @media (prefers-color-scheme: dark) {
     background-color: #333333;
   }
 `
 
-const ListCellTitle = styled.div`
+const ListCellTitle = styled.span`
   font-size: 1rem;
   font-weight: 400;
   color: black;
@@ -89,10 +95,31 @@ const ListCellTitle = styled.div`
   }
 `
 
-const ListCellSubtitle = styled.div`
+const ListCellSubtitle = styled.span`
   font-size: 0.8rem;
   font-weight: 400;
   color: gray;
+  float: right;
+`
+
+const ListFooter = styled.div`
+  text-align: center;
+  font-size: 0.8rem;
+  margin-top: 2rem;
+  line-height: 1rem;
+  padding: 0 2rem;
+`
+
+const AppDetails = styled.div`
+  font-size: 1.25rem;
+  margin: 2rem 1rem;
+  font-weight: 500;
+
+  & li {
+    font-size: 1rem;
+    font-weight: 400;
+    margin: 0.8rem 0;
+  }
 `
 
 const PrevousChatCell = ({
@@ -110,7 +137,7 @@ const PrevousChatCell = ({
         <ListCellTitle>{name}</ListCellTitle>
         <ListCellSubtitle>{`${daysRemaining} ${
           daysRemaining === 1 ? 'day' : 'days'
-        } remaining`}</ListCellSubtitle>
+        } left`}</ListCellSubtitle>
       </ListCell>
     </Link>
   )
@@ -191,26 +218,64 @@ export default function NewConversation() {
     }
   }
 
-  return (
-    <>
-      <Header>
-        <Title>OneTimeChat</Title>
-        <Description>
-          Chat with just a link.
-          <br />
-          Convos dissapear after 30 days.
-        </Description>
-      </Header>
+  if (previousConvos.length === 0) {
+    return (
       <Content>
-        <Subtitle>New Chat</Subtitle>
+        <Title $extended={true}>OneTimeChat</Title>
         <InputContainer>
-          <Input
+          <CreateInput
             type='text'
             placeholder='Conversation Name'
             value={convoName}
             onChange={(e) => setConvoName(e.target.value)}
+            onKeyDownCapture={(event) => {
+              if (event.key === 'Enter') {
+                submitHandler()
+              }
+            }}
           />
-          <Button onClick={submitHandler}>Create</Button>
+          <Button onClick={submitHandler}>
+            <img src={creation} alt='Start New Conversation' />
+          </Button>
+        </InputContainer>
+        <AppDetails>
+          Send and recieve messages with just a link!
+          <ul>
+            <li>No accounts required!</li>
+            <li>Share group chats with just a link.</li>
+            <li>Anyone who has the link can see and send messages.</li>
+            <li>
+              The conversation is deleted 30 days after the last message is
+              sent.
+            </li>
+          </ul>
+        </AppDetails>
+      </Content>
+    )
+  }
+
+  return (
+    <>
+      <Header>
+        <Title>OneTimeChat</Title>
+      </Header>
+      <Content>
+        <Subtitle>New Chat</Subtitle>
+        <InputContainer>
+          <CreateInput
+            type='text'
+            placeholder='Conversation Name'
+            value={convoName}
+            onChange={(e) => setConvoName(e.target.value)}
+            onKeyDownCapture={(event) => {
+              if (event.key === 'Enter') {
+                submitHandler()
+              }
+            }}
+          />
+          <Button onClick={submitHandler}>
+            <img src={creation} alt='Start New Conversation' />
+          </Button>
         </InputContainer>
         <Subtitle>Previous Chats</Subtitle>
         {previousConvos.map((c) => (
@@ -221,6 +286,10 @@ export default function NewConversation() {
             daysRemaining={getDaysRemaining(new Date(), c.deletionDate)}
           />
         ))}
+        <ListFooter>
+          Conversations dissapear 30 days after the last message was sent.
+          Anyone with a link can see and send messages.
+        </ListFooter>
       </Content>
     </>
   )

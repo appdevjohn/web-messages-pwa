@@ -42,7 +42,7 @@ const ComposeArea = styled.div`
   background-color: transparent;
 `
 
-const ComposeInput = styled.input`
+export const ComposeInput = styled.input`
   appearance: none;
   border: none;
   height: 44px;
