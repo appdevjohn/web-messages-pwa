@@ -28,12 +28,56 @@ const ErrorViewMessage = styled.div`
   font-weight: 400;
 `
 
+const ShareChatContainer = styled.div`
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+  width: 100%;
+  padding: 2rem;
+`
+
+const ShareChatLabel = styled.div`
+  font-size: 0.8rem;
+  text-align: center;
+  font-weight: 700;
+  color: gray;
+  margin-bottom: 1rem;
+`
+
+const ShareChatButton = styled.button`
+  appearance: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  background-color: transparent;
+  color: var(--accent-color);
+  cursor: pointer;
+`
+
 function ErrorView({ title, message }: { title: string; message: string }) {
   return (
     <ErrorViewContainer>
       <ErrorViewTitle>{title}</ErrorViewTitle>
       <ErrorViewMessage>{message}</ErrorViewMessage>
     </ErrorViewContainer>
+  )
+}
+
+function ShareChat() {
+  return (
+    <ShareChatContainer>
+      <ShareChatLabel>
+        Share the link to this chat to anyone you want to include.
+      </ShareChatLabel>
+      <ShareChatButton
+        onClick={() => navigator.share({ url: window.location.href })}
+      >
+        Share Chat
+      </ShareChatButton>
+    </ShareChatContainer>
   )
 }
 
@@ -216,6 +260,8 @@ export default function ConversationView() {
             title={"This is not the converation you're looking for."}
             message={'This chat has either expired or never existed.'}
           />
+        ) : messages.length === 0 && !sendingMessage ? (
+          <ShareChat />
         ) : (
           <MessageView
             highlightId={`${user.name}-${user.avatar}`}

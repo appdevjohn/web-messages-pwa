@@ -35,6 +35,7 @@ const Block = styled.div`
 
 const BlockSenderImage = styled.div`
   display: flex;
+  flex-shrink: 0;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -57,7 +58,7 @@ const BlockSenderName = styled.div`
 `
 
 const View = styled.div`
-  width: calc(100% - 30px);
+  width: 100%;
   margin-bottom: 92px;
   margin-top: 80px;
 `
