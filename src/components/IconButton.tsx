@@ -1,6 +1,9 @@
 import styled from 'styled-components'
 
-const Button = styled.button<{ $hasBorders: boolean }>`
+const Button = styled.button<{
+  $hasBorders: boolean
+  $backgroundColor?: string
+}>`
   display: inline-block;
   height: 44px;
   width: 44px;
@@ -9,7 +12,9 @@ const Button = styled.button<{ $hasBorders: boolean }>`
   box-shadow: ${(props) =>
     props.$hasBorders ? '0 2px 4px rgba(0, 0, 0, 0.5)' : 'none'};
   background-color: ${(props) =>
-    props.$hasBorders ? 'var(--content-background)' : 'transparent'};
+    props.$hasBorders
+      ? props.$backgroundColor || 'var(--content-background)'
+      : 'transparent'};
   cursor: pointer;
 
   & img {
@@ -20,19 +25,20 @@ const Button = styled.button<{ $hasBorders: boolean }>`
 `
 
 type ButtonType = {
-  icon: string
-  alt: string
+  icon: any
   onClick: () => void
   hasBorders?: boolean
+  backgroundColor?: string
   disabled?: boolean
   style?: any
+  fill?: string
 }
 
 const IconButton = ({
   icon,
-  alt,
   onClick,
   hasBorders = true,
+  backgroundColor,
   disabled = false,
   style = {},
 }: ButtonType) => {
@@ -41,9 +47,10 @@ const IconButton = ({
       onClick={onClick}
       disabled={disabled}
       $hasBorders={hasBorders}
+      $backgroundColor={backgroundColor}
       style={style}
     >
-      <img src={icon} alt={alt} />
+      {icon}
     </Button>
   )
 }

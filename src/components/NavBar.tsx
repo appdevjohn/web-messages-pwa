@@ -1,15 +1,13 @@
+/// <reference types="vite-plugin-svgr/client" />
+
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import IconButton from './IconButton'
-import editProfileIcon from '../assets/edit-account.png'
-import closeChatIcon from '../assets/close.png'
+import EditProfileSVG from '../assets/edit-account.svg?react'
+import CloseSVG from '../assets/close.svg?react'
 
 const Container = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
   position: fixed;
   top: 0;
   left: 0;
@@ -24,6 +22,16 @@ const Container = styled.div`
     background-color: rgb(30, 30, 30);
     box-shadow: 0px 2px 2px black;
   }
+`
+
+const Content = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  margin: auto;
+  max-width: 40rem;
 `
 
 const TitleStack = styled.div`
@@ -44,6 +52,26 @@ const Subtitle = styled.div`
   color: gray;
 `
 
+const EditProfileIcon = styled(EditProfileSVG)`
+  path {
+    fill: var(--accent-color);
+
+    @media (prefers-color-scheme: dark) {
+      fill: white;
+    }
+  }
+`
+
+const CloseIcon = styled(CloseSVG)`
+  path {
+    fill: var(--accent-color);
+
+    @media (prefers-color-scheme: dark) {
+      fill: white;
+    }
+  }
+`
+
 type NavBar = {
   title: string
   subtitle?: string
@@ -61,28 +89,28 @@ const NavBar = ({
 
   return (
     <Container>
-      <TitleStack>
-        <Title>{title}</Title>
-        {subtitle && <Subtitle>{subtitle}</Subtitle>}
-      </TitleStack>
-      <div>
-        {!disableEditProfile && (
+      <Content>
+        <TitleStack>
+          <Title>{title}</Title>
+          {subtitle && <Subtitle>{subtitle}</Subtitle>}
+        </TitleStack>
+        <div>
+          {!disableEditProfile && (
+            <IconButton
+              icon={<EditProfileIcon />}
+              onClick={onUserClick}
+              style={{ marginLeft: '8px' }}
+              hasBorders={false}
+            />
+          )}
           <IconButton
-            icon={editProfileIcon}
-            alt='Edit Profile'
-            onClick={onUserClick}
+            icon={<CloseIcon />}
+            onClick={() => navigate('/')}
             style={{ marginLeft: '8px' }}
             hasBorders={false}
           />
-        )}
-        <IconButton
-          icon={closeChatIcon}
-          alt='Exit Chat'
-          onClick={() => navigate('/')}
-          style={{ marginLeft: '8px' }}
-          hasBorders={false}
-        />
-      </div>
+        </div>
+      </Content>
     </Container>
   )
 }

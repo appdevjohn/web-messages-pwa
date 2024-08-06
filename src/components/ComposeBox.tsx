@@ -1,8 +1,10 @@
+/// <reference types="vite-plugin-svgr/client" />
+
 import { useRef, useState } from 'react'
 import styled from 'styled-components'
 
 import IconButton from './IconButton'
-import fileUpload from '../assets/file-upload.png'
+import FileUploadSVG from '../assets/file-upload.svg?react'
 
 const Container = styled.div<{ $active?: boolean }>`
   position: fixed;
@@ -16,6 +18,14 @@ const Container = styled.div<{ $active?: boolean }>`
   background-color: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
+
+  @media (prefers-color-scheme: dark) {
+    background-color: rgba(30, 30, 30, 0.5);
+  }
+
+  @media (min-width: 40rem) {
+    height: 96px;
+  }
 `
 
 const Content = styled.div<{ $uploadEnabled: boolean }>`
@@ -24,6 +34,8 @@ const Content = styled.div<{ $uploadEnabled: boolean }>`
   grid-template-columns: ${(props) =>
     props.$uploadEnabled ? '0px 44px 1fr 0px' : '0px 1fr 0px'};
   column-gap: 10px;
+  max-width: 40rem;
+  margin: auto;
 `
 
 const UploadButtonContainer = styled.div`
@@ -70,6 +82,12 @@ export const ComposeInput = styled.input`
   }
 `
 
+const FileUploadIcon = styled(FileUploadSVG)`
+  path {
+    fill: var(--accent-color);
+  }
+`
+
 type ComposeBox = {
   sendMessage: (m: string) => void
   becameActive: () => void
@@ -101,8 +119,7 @@ const ComposeBox = ({
         {!disableUpload && (
           <UploadButtonContainer>
             <IconButton
-              icon={fileUpload}
-              alt='File Upload'
+              icon={<FileUploadIcon style={{ transform: 'translateY(1px)' }} />}
               disabled={disableUpload}
               onClick={() => {
                 uploadRef.current && uploadRef.current.click()

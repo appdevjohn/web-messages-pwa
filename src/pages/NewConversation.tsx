@@ -1,3 +1,5 @@
+/// <reference types="vite-plugin-svgr/client" />
+
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import styled from 'styled-components'
@@ -6,8 +8,9 @@ import restAPI from '../util/rest'
 import getDaysRemaining from '../util/daysRemaining'
 import { StoredConversationType } from '../types'
 import { ComposeInput } from '../components/ComposeBox'
+import IconButton from '../components/IconButton'
 
-import creation from '../assets/creation.svg'
+import CreationSVG from '../assets/creation.svg?react'
 
 const Header = styled.div`
   background-color: var(--accent-color);
@@ -18,6 +21,10 @@ const Header = styled.div`
   @media (prefers-color-scheme: dark) {
     background-color: rgb(30, 30, 30);
     box-shadow: 0px 2px 2px black;
+  }
+
+  @media (min-width: 40rem) {
+    padding: 24px 8px 16px 8px;
   }
 `
 
@@ -30,14 +37,20 @@ const Title = styled.div<{ $extended?: boolean }>`
   text-align: left;
   font-size: ${(props) => (props.$extended ? '2.5rem' : '2rem')};
   font-weight: 700;
-  margin: ${(props) => (props.$extended ? '2rem 0 1.5rem 0' : 'inherit')};
+  margin: ${(props) => (props.$extended ? '2rem auto 1.5rem auto' : 'auto')};
+  max-width: 40rem;
+
+  @media (min-width: 40rem) {
+    font-size: ${(props) => (props.$extended ? '3rem' : '2.5rem')};
+  }
 `
 
 const Subtitle = styled.div`
   text-align: left;
   font-size: 1.3rem;
   font-weight: 700;
-  margin: 1rem 0 0.5rem 0;
+  margin: 1rem auto 0.5rem auto;
+  max-width: 40rem;
 `
 
 const InputContainer = styled.div`
@@ -45,40 +58,22 @@ const InputContainer = styled.div`
   grid-template-columns: 1fr 44px;
   grid-template-rows: 44px;
   column-gap: 8px;
-  margin-bottom: 2rem;
+  margin: 0 auto 2rem auto;
+  max-width: 40rem;
 `
 
 const CreateInput = styled(ComposeInput)`
   width: calc(100% - 32px);
 `
 
-const Button = styled.button`
-  appearance: none;
-  background-color: var(--accent-color);
-  color: white;
-  border-radius: 22px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  border: none;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  cursor: pointer;
-  padding: 0;
-
-  & img {
-    height: 26px;
-    width: 26px;
-    object-fit: contain;
-    transform: translate(-1px, 2px);
-  }
-`
-
 const ListCell = styled.div`
-  margin: 8px 0;
+  box-sizing: border-box;
+  margin: 8px auto;
   padding: 12px;
   background-color: var(--content-background);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   border-radius: 12px;
+  max-width: 40rem;
 
   @media (prefers-color-scheme: dark) {
     background-color: #333333;
@@ -105,20 +100,30 @@ const ListCellSubtitle = styled.span`
 const ListFooter = styled.div`
   text-align: center;
   font-size: 0.8rem;
-  margin-top: 2rem;
+  margin: 2rem auto 0 auto;
   line-height: 1rem;
   padding: 0 2rem;
+  max-width: 40rem;
 `
 
 const AppDetails = styled.div`
+  box-sizing: border-box;
   font-size: 1.25rem;
-  margin: 2rem 1rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
   font-weight: 500;
+  max-width: 40rem;
 
   & li {
     font-size: 1rem;
     font-weight: 400;
     margin: 0.8rem 0;
+  }
+`
+
+const CreationIcon = styled(CreationSVG)`
+  path {
+    fill: white;
   }
 `
 
@@ -218,26 +223,33 @@ export default function NewConversation() {
     }
   }
 
+  const inputContainer = (
+    <InputContainer>
+      <CreateInput
+        type='text'
+        placeholder='Conversation Name'
+        value={convoName}
+        onChange={(e) => setConvoName(e.target.value)}
+        onKeyDownCapture={(event) => {
+          if (event.key === 'Enter') {
+            submitHandler()
+          }
+        }}
+      />
+      <IconButton
+        icon={<CreationIcon style={{ transform: 'translate(-1px, 2px)' }} />}
+        onClick={submitHandler}
+        hasBorders={true}
+        backgroundColor='var(--accent-color)'
+      />
+    </InputContainer>
+  )
+
   if (previousConvos.length === 0) {
     return (
       <Content>
         <Title $extended={true}>OneTimeChat</Title>
-        <InputContainer>
-          <CreateInput
-            type='text'
-            placeholder='Conversation Name'
-            value={convoName}
-            onChange={(e) => setConvoName(e.target.value)}
-            onKeyDownCapture={(event) => {
-              if (event.key === 'Enter') {
-                submitHandler()
-              }
-            }}
-          />
-          <Button onClick={submitHandler}>
-            <img src={creation} alt='Start New Conversation' />
-          </Button>
-        </InputContainer>
+        {inputContainer}
         <AppDetails>
           Send and recieve messages with just a link!
           <ul>
@@ -261,22 +273,7 @@ export default function NewConversation() {
       </Header>
       <Content>
         <Subtitle>New Chat</Subtitle>
-        <InputContainer>
-          <CreateInput
-            type='text'
-            placeholder='Conversation Name'
-            value={convoName}
-            onChange={(e) => setConvoName(e.target.value)}
-            onKeyDownCapture={(event) => {
-              if (event.key === 'Enter') {
-                submitHandler()
-              }
-            }}
-          />
-          <Button onClick={submitHandler}>
-            <img src={creation} alt='Start New Conversation' />
-          </Button>
-        </InputContainer>
+        {inputContainer}
         <Subtitle>Previous Chats</Subtitle>
         {previousConvos.map((c) => (
           <PrevousChatCell
