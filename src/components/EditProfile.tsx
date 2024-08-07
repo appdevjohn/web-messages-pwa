@@ -49,7 +49,7 @@ const Container = styled.div`
   animation: ${moveUp} 0.2s ease-out;
 
   @media (prefers-color-scheme: dark) {
-    background-color: rgb(30, 30, 30);
+    background-color: rgb(65, 65, 65);
     box-shadow: 0px 2px 2px black;
   }
 `
