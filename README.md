@@ -1,30 +1,24 @@
-# React + TypeScript + Vite
+# OneTimeChat - UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Send group messages anonymously with no account or app needed. Conversations are deleted 30 days after the last message is sent, and anyone with the link can view and send messages.
 
-Currently, two official plugins are available:
+This application requires a backend service to function. You can find that codebase [here](https://github.com/appdevjohn/web-messages-service).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Required Environment Variables
 
-## Expanding the ESLint configuration
+| Name              | Description                           | Example               |
+| ----------------- | ------------------------------------- | --------------------- |
+| VITE_API_BASE_URL | The base URL for the backend service. | http://localhost:8000 |
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Running on your Local Machine
 
-- Configure the top-level `parserOptions` property like this:
+1. Ensure Node.js is installed on your machine.
+2. Run `npm install` in this directory to install dependencies.
+3. Run `npm run dev` to run in a development environment.
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+## Running in a Production Environment
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+1. Ensure Node.js is installed on your machine.
+2. Run `npm install` in this directory.
+3. Run `npm run build` to build a production application.
+4. Run `npm run preview` to serve the production application.
