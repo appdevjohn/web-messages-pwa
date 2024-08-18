@@ -7,7 +7,7 @@ import IconButton from './IconButton'
 import FileUploadSVG from '../assets/file-upload.svg?react'
 
 const Container = styled.div<{ $active?: boolean }>`
-  position: fixed;
+  position: relative;
   bottom: 0;
   left: 0;
   right: 0;

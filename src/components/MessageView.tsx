@@ -59,7 +59,7 @@ const BlockSenderName = styled.div`
 
 const View = styled.div`
   width: 100%;
-  margin: 80px auto 92px auto;
+  margin: 16px auto 16px auto;
   max-width: 40rem;
 
   @media (min-width: 40rem) {

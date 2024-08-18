@@ -11,6 +11,13 @@ import NavBar from '../components/NavBar'
 import ComposeBox from '../components/ComposeBox'
 import EditProfile from '../components/EditProfile'
 
+const Container = styled.div<{ $height?: number }>`
+  position: relative;
+  height: ${(props) => (props.$height ? props.$height + 'px' : '100vh')};
+  display: grid;
+  grid-template-rows: 64px 1fr auto;
+`
+
 const ErrorViewContainer = styled.div`
   margin: 6rem auto 0 auto;
   text-align: center;
@@ -96,6 +103,12 @@ export default function ConversationView() {
     : undefined
 
   const [doesChatExist, setDoesChatExist] = useState<boolean>()
+  const [visualViewportHeight, setVisualViewportHeight] = useState<number>()
+
+  const handleViewportChange = (event: any) => {
+    const viewport = event.target
+    setVisualViewportHeight(viewport.height)
+  }
 
   // Handle WebSocket events.
   useEffect(() => {
@@ -160,6 +173,8 @@ export default function ConversationView() {
     socket.on('response', onResponse)
     socket.on(`${convoId}`, onUpdate)
 
+    window.visualViewport?.addEventListener('resize', handleViewportChange)
+
     return () => {
       socket.off('error', onError)
       socket.off('connect', onConnect)
@@ -167,6 +182,8 @@ export default function ConversationView() {
       socket.off('messages', onMessages)
       socket.off('response', onResponse)
       socket.off(`${convoId}`, onUpdate)
+
+      window.visualViewport?.removeEventListener('resize', handleViewportChange)
     }
   }, [])
 
@@ -225,7 +242,7 @@ export default function ConversationView() {
   }
 
   return (
-    <>
+    <Container $height={visualViewportHeight}>
       {(user.name.length === 0 || shouldEditUser) && (
         <EditProfile
           user={user}
@@ -236,48 +253,46 @@ export default function ConversationView() {
           onDismiss={() => setShouldEditUser(false)}
         />
       )}
-      <div>
-        <NavBar
-          title={
-            doesChatExist === undefined
-              ? 'Loading...'
-              : doesChatExist
-              ? convoName
-              : ''
-          }
-          subtitle={
-            doesChatExist
-              ? `${daysRemaining} ${
-                  daysRemaining === 1 ? 'day' : 'days'
-                } remaining`
-              : undefined
-          }
-          onUserClick={() => setShouldEditUser(true)}
-          disableEditProfile={!doesChatExist}
+      <NavBar
+        title={
+          doesChatExist === undefined
+            ? 'Loading...'
+            : doesChatExist
+            ? convoName
+            : ''
+        }
+        subtitle={
+          doesChatExist
+            ? `${daysRemaining} ${
+                daysRemaining === 1 ? 'day' : 'days'
+              } remaining`
+            : undefined
+        }
+        onUserClick={() => setShouldEditUser(true)}
+        disableEditProfile={!doesChatExist}
+      />
+      {doesChatExist === false ? (
+        <ErrorView
+          title={"This is not the converation you're looking for."}
+          message={'This chat has either expired or never existed.'}
         />
-        {doesChatExist === false ? (
-          <ErrorView
-            title={"This is not the converation you're looking for."}
-            message={'This chat has either expired or never existed.'}
-          />
-        ) : messages.length === 0 && !sendingMessage ? (
-          <ShareChat />
-        ) : (
-          <MessageView
-            highlightId={`${user.name}-${user.avatar}`}
-            isLoadingOlderMessages={false}
-            onLoadOlderMessages={() => {}}
-            showLoadOlderMessagesButton={false}
-            messages={sendingMessage ? [...messages, sendingMessage] : messages}
-          />
-        )}
-        <ComposeBox
-          becameActive={() => {}}
-          disableUpload={true}
-          onUploadFile={() => {}}
-          sendMessage={sendMessageHandler}
+      ) : messages.length === 0 && !sendingMessage ? (
+        <ShareChat />
+      ) : (
+        <MessageView
+          highlightId={`${user.name}-${user.avatar}`}
+          isLoadingOlderMessages={false}
+          onLoadOlderMessages={() => {}}
+          showLoadOlderMessagesButton={false}
+          messages={sendingMessage ? [...messages, sendingMessage] : messages}
         />
-      </div>
-    </>
+      )}
+      <ComposeBox
+        becameActive={() => {}}
+        disableUpload={true}
+        onUploadFile={() => {}}
+        sendMessage={sendMessageHandler}
+      />
+    </Container>
   )
 }

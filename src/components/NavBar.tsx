@@ -8,7 +8,7 @@ import EditProfileSVG from '../assets/edit-account.svg?react'
 import CloseSVG from '../assets/close.svg?react'
 
 const Container = styled.div`
-  position: fixed;
+  position: relative;
   top: 0;
   left: 0;
   right: 0;
