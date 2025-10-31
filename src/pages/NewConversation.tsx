@@ -1,14 +1,19 @@
 /// <reference types="vite-plugin-svgr/client" />
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import type { FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import styled from 'styled-components'
 
 import restAPI from '../util/rest'
+import socket from '../util/socket'
 import getDaysRemaining from '../util/daysRemaining'
 import { StoredConversationType } from '../types'
 import { ComposeInput } from '../components/ComposeBox'
 import IconButton from '../components/IconButton'
+import { logIn, logOut } from '../store/slices/auth'
+import type { RootState, AppDispatch } from '../store/store'
 
 import CreationSVG from '../assets/creation.svg?react'
 
@@ -31,6 +36,20 @@ const Header = styled.div`
 const Content = styled.div`
   margin: 0;
   padding: 8px;
+`
+
+const HeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 40rem;
+  margin: 0 auto;
+  gap: 1rem;
+`
+
+const Brand = styled.div`
+  font-size: 2rem;
+  font-weight: 700;
 `
 
 const Title = styled.div<{ $extended?: boolean }>`
@@ -64,6 +83,11 @@ const InputContainer = styled.div`
 
 const CreateInput = styled(ComposeInput)`
   width: calc(100% - 32px);
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `
 
 const ListCell = styled.div`
@@ -127,6 +151,100 @@ const CreationIcon = styled(CreationSVG)`
   }
 `
 
+const AuthCard = styled.div`
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 1.5rem;
+  max-width: 28rem;
+  background-color: var(--content-background);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
+  border-radius: 16px;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: #333333;
+  }
+`
+
+const FormTitle = styled.div`
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+`
+
+const LoginForm = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`
+
+const TextInput = styled.input`
+  appearance: none;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background-color: white;
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(255, 135, 30, 0.25);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background-color: rgb(45, 45, 45);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+`
+
+const PrimaryButton = styled.button`
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  background-color: var(--accent-color);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`
+
+const LogoutButton = styled(PrimaryButton)`
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+`
+
+const ErrorText = styled.div`
+  font-size: 0.85rem;
+  color: #c72c41;
+  font-weight: 500;
+`
+
+const HelperText = styled.div`
+  font-size: 0.95rem;
+  margin: 1.5rem auto 0;
+  text-align: center;
+  max-width: 32rem;
+`
+
+const LoadingText = styled.div`
+  font-size: 0.95rem;
+  text-align: center;
+  margin: 1.5rem auto;
+  color: gray;
+`
+
 const PrevousChatCell = ({
   convoId,
   name,
@@ -150,76 +268,194 @@ const PrevousChatCell = ({
 
 export default function NewConversation() {
   const navigate = useNavigate()
+  const dispatch = useDispatch<AppDispatch>()
+  const authState = useSelector((state: RootState) => state.auth)
 
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const [isSocketConnected, setIsSocketConnected] = useState(socket.connected)
   const [convoName, setConvoName] = useState('')
   const [previousConvos, setPreviousConvos] = useState<
     StoredConversationType[]
   >([])
+  const [isFetchingConvos, setIsFetchingConvos] = useState(false)
+  const [convoError, setConvoError] = useState<string | null>(null)
+  const [isCreatingConvo, setIsCreatingConvo] = useState(false)
+
+  const isLoggedIn = Boolean(authState.accessToken)
 
   useEffect(() => {
-    const previousChatString = localStorage.getItem('previous-chats')
-    const previousChatsIDs: string[] = previousChatString
-      ? JSON.parse(previousChatString)
-      : []
+    const onConnect = () => setIsSocketConnected(true)
+    const onDisconnect = () => setIsSocketConnected(false)
 
-    const getConvoData = async (
-      convoId: string
-    ): Promise<StoredConversationType> => {
-      try {
-        const response = await restAPI.get(`/conversation/${convoId}`)
-        return {
-          convoId: response.data['conversation']['id'],
-          name: response.data['conversation']['name'],
-          dateStored: new Date(response.data['conversation']['updatedAt']),
-          deletionDate: new Date(response.data['deletionDate']),
-        }
-      } catch (error: any) {
-        if (
-          error.response?.data?.['errorMessage'] ===
-          'This conversation has been deleted.'
-        ) {
-          throw new Error('This conversation has been deleted.')
-        } else {
-          throw new Error('Could not get this conversation.')
-        }
-      }
-    }
-    const parseConvoIDs = async (
-      convoIDs: string[]
-    ): Promise<StoredConversationType[]> => {
-      const previousChats = []
-      for await (const id of convoIDs) {
-        try {
-          const chat = await getConvoData(id)
-          previousChats.push(chat)
-        } catch (error) {
-          if (String(error) === 'Error: This conversation has been deleted.') {
-            previousChatsIDs.splice(previousChatsIDs.indexOf(id), 1)
-          }
-        }
-      }
-      return previousChats
-    }
+    socket.on('connect', onConnect)
+    socket.on('disconnect', onDisconnect)
 
-    parseConvoIDs(previousChatsIDs)
-      .then((chats) => {
-        setPreviousConvos(chats)
-        localStorage.setItem('previous-chats', JSON.stringify(previousChatsIDs))
-      })
-      .catch((error) => {
-        console.log(error)
-        setPreviousConvos([])
-      })
+    return () => {
+      socket.off('connect', onConnect)
+      socket.off('disconnect', onDisconnect)
+    }
   }, [])
 
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setPreviousConvos([])
+      setConvoError(null)
+    }
+  }, [isLoggedIn])
+
+  const normalizeConversations = useCallback(
+    (payload: unknown): StoredConversationType[] => {
+      const candidates = Array.isArray(payload)
+        ? payload
+        : typeof payload === 'object' && payload
+        ? Array.isArray((payload as { conversations?: unknown }).conversations)
+          ? (payload as { conversations?: unknown[] }).conversations
+          : []
+        : []
+
+      const parsed = candidates
+        .map((raw) => {
+          if (!raw || typeof raw !== 'object') {
+            return null
+          }
+          const item = raw as Record<string, unknown>
+          const id =
+            (typeof item.id === 'string' && item.id) ||
+            (typeof item.convoId === 'string' && item.convoId)
+
+          if (!id) {
+            return null
+          }
+
+          const name =
+            (typeof item.name === 'string' && item.name) ||
+            'Untitled conversation'
+          const updatedAt =
+            (typeof item.updatedAt === 'string' && item.updatedAt) ||
+            (typeof item.createdAt === 'string' && item.createdAt) ||
+            new Date().toISOString()
+          const deletion =
+            (typeof item.deletionDate === 'string' && item.deletionDate) ||
+            (typeof item.expiresAt === 'string' && item.expiresAt) ||
+            updatedAt
+
+          const parsedUpdated = new Date(updatedAt)
+          const parsedDeletion = new Date(deletion)
+
+          return {
+            convoId: id,
+            name,
+            dateStored: Number.isNaN(parsedUpdated.getTime())
+              ? new Date()
+              : parsedUpdated,
+            deletionDate: Number.isNaN(parsedDeletion.getTime())
+              ? new Date()
+              : parsedDeletion,
+          }
+        })
+        .filter((value): value is StoredConversationType => Boolean(value))
+
+      return parsed
+    },
+    []
+  )
+
+  const fetchConversations = useCallback(() => {
+    if (!isLoggedIn) {
+      return
+    }
+
+    setIsFetchingConvos(true)
+    setConvoError(null)
+
+    if (isSocketConnected) {
+      socket.emit('list-conversations')
+    } else {
+      setConvoError('Waiting for connection...')
+      setIsFetchingConvos(false)
+    }
+  }, [isLoggedIn, isSocketConnected])
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      return
+    }
+
+    const onResponse = (payload: unknown) => {
+      if (!payload || typeof payload !== 'object') {
+        return
+      }
+
+      const response = payload as {
+        event?: unknown
+        data?: unknown
+        error?: unknown
+        status?: unknown
+      }
+
+      if (response.event !== 'list-conversations') {
+        return
+      }
+
+      setIsFetchingConvos(false)
+
+      if (response.error) {
+        setConvoError(String(response.error))
+        setPreviousConvos([])
+        return
+      }
+
+      if (typeof response.status === 'number' && response.status >= 400) {
+        setConvoError(
+          `Unable to load conversations (status ${response.status}).`
+        )
+        setPreviousConvos([])
+        return
+      }
+
+      const normalized = normalizeConversations(response.data)
+      setPreviousConvos(normalized)
+      setConvoError(null)
+    }
+
+    socket.on('response', onResponse)
+
+    if (isSocketConnected) {
+      fetchConversations()
+    }
+
+    return () => {
+      socket.off('response', onResponse)
+    }
+  }, [
+    fetchConversations,
+    isLoggedIn,
+    isSocketConnected,
+    normalizeConversations,
+  ])
+
   const submitHandler = async () => {
-    if (convoName) {
+    if (!isLoggedIn || !convoName.trim() || isCreatingConvo) {
+      return
+    }
+
+    try {
+      setIsCreatingConvo(true)
       const response = await restAPI.post('/conversation', {
-        name: convoName,
+        name: convoName.trim(),
       })
 
       const conversation = response.data['conversation']
+      setConvoName('')
+      fetchConversations()
       navigate(`/${conversation['id']}`)
+    } catch (error) {
+      setConvoError('Unable to create conversation. Please try again.')
+    } finally {
+      setIsCreatingConvo(false)
     }
   }
 
@@ -229,6 +465,7 @@ export default function NewConversation() {
         type='text'
         placeholder='Conversation Name'
         value={convoName}
+        disabled={!isLoggedIn || isCreatingConvo || authState.isLoading}
         onChange={(e) => setConvoName(e.target.value)}
         onKeyDownCapture={(event) => {
           if (event.key === 'Enter') {
@@ -241,27 +478,68 @@ export default function NewConversation() {
         onClick={submitHandler}
         hasBorders={true}
         backgroundColor='var(--accent-color)'
+        disabled={!isLoggedIn || isCreatingConvo || authState.isLoading}
       />
     </InputContainer>
   )
 
-  if (previousConvos.length === 0) {
+  const handleLogIn = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!username.trim() || !password.trim()) {
+      setFormError('Enter your username and password.')
+      return
+    }
+
+    setFormError(null)
+    dispatch(logIn({ username: username.trim(), password: password.trim() }))
+  }
+
+  const handleLogOut = () => {
+    dispatch(logOut())
+    setConvoName('')
+  }
+
+  if (!isLoggedIn) {
     return (
       <Content>
         <Title $extended={true}>OneTimeChat</Title>
-        {inputContainer}
         <AppDetails>
-          Send and recieve messages with just a link!
+          Stay on top of your team's quick chats without keeping a browser tab
+          open.
           <ul>
-            <li>No accounts required!</li>
-            <li>Share group chats with just a link.</li>
-            <li>Anyone who has the link can see and send messages.</li>
-            <li>
-              The conversation is deleted 30 days after the last message is
-              sent.
-            </li>
+            <li>Jump into conversations instantly from any device.</li>
+            <li>Share rooms with a link and manage membership in one place.</li>
+            <li>Conversations expire 30 days after the last activity.</li>
           </ul>
         </AppDetails>
+        <AuthCard>
+          <FormTitle>Log in to continue</FormTitle>
+          <LoginForm onSubmit={handleLogIn}>
+            <TextInput
+              type='text'
+              placeholder='Username'
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              autoComplete='username'
+            />
+            <TextInput
+              type='password'
+              placeholder='Password'
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete='current-password'
+            />
+            {(formError || authState.error) && (
+              <ErrorText>{formError || authState.error}</ErrorText>
+            )}
+            <PrimaryButton type='submit' disabled={authState.isLoading}>
+              {authState.isLoading ? 'Signing in…' : 'Log In'}
+            </PrimaryButton>
+          </LoginForm>
+        </AuthCard>
+        <HelperText>
+          Need access? Ask an admin to invite you or reset your credentials.
+        </HelperText>
       </Content>
     )
   }
@@ -269,12 +547,19 @@ export default function NewConversation() {
   return (
     <>
       <Header>
-        <Title>OneTimeChat</Title>
+        <HeaderRow>
+          <Brand>OneTimeChat</Brand>
+          <LogoutButton onClick={handleLogOut} disabled={authState.isLoading}>
+            {authState.isLoading ? 'Logging out…' : 'Log Out'}
+          </LogoutButton>
+        </HeaderRow>
       </Header>
       <Content>
         <Subtitle>New Chat</Subtitle>
         {inputContainer}
         <Subtitle>Previous Chats</Subtitle>
+        {isFetchingConvos && <LoadingText>Loading conversations…</LoadingText>}
+        {convoError && <ErrorText>{convoError}</ErrorText>}
         {previousConvos.map((c) => (
           <PrevousChatCell
             key={c.convoId}
@@ -283,6 +568,12 @@ export default function NewConversation() {
             daysRemaining={getDaysRemaining(new Date(), c.deletionDate)}
           />
         ))}
+        {!isFetchingConvos && !previousConvos.length && !convoError && (
+          <HelperText>
+            You have no saved conversations yet. Create a new chat above or ask
+            a teammate to send you an invite link.
+          </HelperText>
+        )}
         <ListFooter>
           Conversations dissapear 30 days after the last message was sent.
           Anyone with a link can see and send messages.
