@@ -55,6 +55,27 @@ export const refresh = createAsyncThunk<TokenPair, void, AsyncThunkConfig>(
   }
 )
 
+export const logOut = createAsyncThunk<void, void, AsyncThunkConfig>(
+  'auth/logOut',
+  async (_, { getState, rejectWithValue }) => {
+    const state = getState()
+    const refreshToken = state.auth.refreshToken
+    if (!refreshToken) {
+      return rejectWithValue('Missing refresh token')
+    }
+    await restAPI.post('/auth/logout', {
+      refreshToken,
+    })
+  }
+)
+
+export const logOutEverywhere = createAsyncThunk<void, void, AsyncThunkConfig>(
+  'auth/logOutEverywhere',
+  async () => {
+    await restAPI.post('/auth/logout-everywhere')
+  }
+)
+
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -102,6 +123,38 @@ export const authSlice = createSlice({
       state.error = action.payload || action.error.message || 'Token refresh failed'
     })
     builder.addCase(refresh.pending, (state) => {
+      state.isLoading = true
+      state.error = null
+    })
+    builder.addCase(logOut.fulfilled, (state) => {
+      state.accessToken = null
+      state.refreshToken = null
+      state.isLoading = false
+      state.error = null
+    })
+    builder.addCase(logOut.rejected, (state, action) => {
+      state.accessToken = null
+      state.refreshToken = null
+      state.isLoading = false
+      state.error = action.payload || action.error.message || 'Logout failed'
+    })
+    builder.addCase(logOut.pending, (state) => {
+      state.isLoading = true
+      state.error = null
+    })
+    builder.addCase(logOutEverywhere.fulfilled, (state) => {
+      state.accessToken = null
+      state.refreshToken = null
+      state.isLoading = false
+      state.error = null
+    })
+    builder.addCase(logOutEverywhere.rejected, (state, action) => {
+      state.accessToken = null
+      state.refreshToken = null
+      state.isLoading = false
+      state.error = action.error.message || 'Logout everywhere failed'
+    })
+    builder.addCase(logOutEverywhere.pending, (state) => {
       state.isLoading = true
       state.error = null
     })
