@@ -15,9 +15,30 @@ type Credentials = {
   password: string
 }
 
+type SignUpData = {
+  displayName: string
+  username: string
+  email?: string | null
+  password: string
+}
+
 type TokenPair = {
   accessToken: string
   refreshToken: string
+}
+
+type SignUpResponse = {
+  user: {
+    id: string
+    verified: boolean
+    displayName: string
+    username: string
+    email: string | null
+    profilePicURL: string
+  }
+  accessToken: string
+  refreshToken: string
+  message: string
 }
 
 type AsyncThunkConfig = {
@@ -36,6 +57,14 @@ export const logIn = createAsyncThunk<TokenPair, Credentials, AsyncThunkConfig>(
   'auth/logIn',
   async (credentials) => {
     const response = await restAPI.put<TokenPair>('/auth/login', credentials)
+    return response.data
+  }
+)
+
+export const signUp = createAsyncThunk<SignUpResponse, SignUpData, AsyncThunkConfig>(
+  'auth/signUp',
+  async (signUpData) => {
+    const response = await restAPI.post<SignUpResponse>('/auth/signup', signUpData)
     return response.data
   }
 )
@@ -107,6 +136,22 @@ export const authSlice = createSlice({
       state.error = action.error.message || 'Login failed'
     })
     builder.addCase(logIn.pending, (state) => {
+      state.isLoading = true
+      state.error = null
+    })
+    builder.addCase(signUp.fulfilled, (state, action) => {
+      state.accessToken = action.payload.accessToken
+      state.refreshToken = action.payload.refreshToken
+      state.isLoading = false
+      state.error = null
+    })
+    builder.addCase(signUp.rejected, (state, action) => {
+      state.accessToken = null
+      state.refreshToken = null
+      state.isLoading = false
+      state.error = action.error.message || 'Sign up failed'
+    })
+    builder.addCase(signUp.pending, (state) => {
       state.isLoading = true
       state.error = null
     })
