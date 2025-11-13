@@ -12,7 +12,7 @@ import getDaysRemaining from '../util/daysRemaining'
 import { StoredConversationType } from '../types'
 import { ComposeInput } from '../components/ComposeBox'
 import IconButton from '../components/IconButton'
-import { logIn, logOut } from '../store/slices/auth'
+import { logIn, logOut, signUp } from '../store/slices/auth'
 import type { RootState, AppDispatch } from '../store/store'
 
 import CreationSVG from '../assets/creation.svg?react'
@@ -245,6 +245,22 @@ const LoadingText = styled.div`
   color: gray;
 `
 
+const ToggleLink = styled.button`
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--accent-color);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+
+  &:hover {
+    opacity: 0.8;
+  }
+`
+
 const PrevousChatCell = ({
   convoId,
   name,
@@ -271,8 +287,11 @@ export default function NewConversation() {
   const dispatch = useDispatch<AppDispatch>()
   const authState = useSelector((state: RootState) => state.auth)
 
+  const [formMode, setFormMode] = useState<'login' | 'signup'>('login')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [email, setEmail] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
 
   const [isSocketConnected, setIsSocketConnected] = useState(socket.connected)
@@ -494,6 +513,37 @@ export default function NewConversation() {
     dispatch(logIn({ username: username.trim(), password: password.trim() }))
   }
 
+  const handleSignUp = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!displayName.trim()) {
+      setFormError('Enter your display name.')
+      return
+    }
+    if (!username.trim()) {
+      setFormError('Enter a username.')
+      return
+    }
+    if (!password.trim()) {
+      setFormError('Enter a password.')
+      return
+    }
+
+    setFormError(null)
+    dispatch(
+      signUp({
+        displayName: displayName.trim(),
+        username: username.trim(),
+        email: email.trim() || null,
+        password: password.trim(),
+      })
+    )
+  }
+
+  const toggleFormMode = () => {
+    setFormMode((prev) => (prev === 'login' ? 'signup' : 'login'))
+    setFormError(null)
+  }
+
   const handleLogOut = () => {
     dispatch(logOut())
     setConvoName('')
@@ -513,8 +563,30 @@ export default function NewConversation() {
           </ul>
         </AppDetails>
         <AuthCard>
-          <FormTitle>Log in to continue</FormTitle>
-          <LoginForm onSubmit={handleLogIn}>
+          <FormTitle>
+            {formMode === 'login' ? 'Log in to continue' : 'Create an account'}
+          </FormTitle>
+          <LoginForm
+            onSubmit={formMode === 'login' ? handleLogIn : handleSignUp}
+          >
+            {formMode === 'signup' && (
+              <>
+                <TextInput
+                  type='text'
+                  placeholder='Display Name'
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  autoComplete='name'
+                />
+                <TextInput
+                  type='email'
+                  placeholder='Email (optional)'
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  autoComplete='email'
+                />
+              </>
+            )}
             <TextInput
               type='text'
               placeholder='Username'
@@ -527,18 +599,36 @@ export default function NewConversation() {
               placeholder='Password'
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              autoComplete='current-password'
+              autoComplete={
+                formMode === 'login' ? 'current-password' : 'new-password'
+              }
             />
             {(formError || authState.error) && (
               <ErrorText>{formError || authState.error}</ErrorText>
             )}
             <PrimaryButton type='submit' disabled={authState.isLoading}>
-              {authState.isLoading ? 'Signing in…' : 'Log In'}
+              {authState.isLoading
+                ? formMode === 'login'
+                  ? 'Signing in…'
+                  : 'Creating account…'
+                : formMode === 'login'
+                ? 'Log In'
+                : 'Sign Up'}
             </PrimaryButton>
           </LoginForm>
         </AuthCard>
         <HelperText>
-          Need access? Ask an admin to invite you or reset your credentials.
+          {formMode === 'login' ? (
+            <>
+              Don't have an account?{' '}
+              <ToggleLink onClick={toggleFormMode}>Sign up here</ToggleLink>
+            </>
+          ) : (
+            <>
+              Already have an account?{' '}
+              <ToggleLink onClick={toggleFormMode}>Log in here</ToggleLink>
+            </>
+          )}
         </HelperText>
       </Content>
     )

@@ -6,13 +6,8 @@ import { store } from './store/store'
 import UserContext, { UserType } from './util/userContext'
 import ConversationView from './pages/Conversation'
 import NewConversation from './pages/NewConversation'
-import AuthView from './pages/Auth'
 
 const router = createBrowserRouter([
-  {
-    path: '/auth',
-    element: <AuthView />,
-  },
   {
     path: '/',
     element: <NewConversation />,
