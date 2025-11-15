@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Provider } from 'react-redux'
 
 import { store } from './store/store'
+import { initializeAuth } from './store/slices/auth'
 import UserContext, { UserType } from './util/userContext'
 import ConversationView from './pages/Conversation'
 import NewConversation from './pages/NewConversation'
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
 
 function App() {
   const [user, setUser] = useState<UserType>({ name: '', avatar: '' })
+
+  useEffect(() => {
+    store.dispatch(initializeAuth())
+  }, [])
 
   useEffect(() => {
     const name = localStorage.getItem('name') || ''
