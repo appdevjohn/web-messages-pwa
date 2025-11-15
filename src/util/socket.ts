@@ -51,9 +51,6 @@ let store: StoreLike | null = null // Redux store reference, set via attachStore
 let isRefreshing = false // Prevents multiple simultaneous refresh requests
 const refreshQueue: RefreshQueueItem[] = [] // Queue of pending requests waiting for token refresh
 
-// Keys that will be automatically populated with the access token
-const accessTokenKeys = ['accessToken', 'token', 'authToken'] as const
-
 /**
  * Attach the Redux store to enable token access and refresh.
  * Must be called before using socket emissions that require auth.
@@ -133,9 +130,7 @@ const requestTokenRefresh = async (): Promise<TokenPair> => {
 /**
  * Injects the access token into an argument object.
  *
- * Looks for these keys and replaces their values with the actual token:
- * - 'accessToken', 'token', 'authToken' → replaced with the token
- * - 'authorization', 'Authorization' → set to 'Bearer {token}'
+ * Looks for the 'token' key and replaces its value with the actual token.
  *
  * Example: { token: '' } becomes { token: 'actual-jwt-token' }
  */
@@ -150,84 +145,47 @@ const updateArgWithAccessToken = (arg: unknown, accessToken: string | null) => {
   }
 
   const currentArg = arg as Record<string, unknown>
-  let shouldUpdate = false
-  const updated: Record<string, unknown> = { ...currentArg }
 
-  // Replace token keys with actual token
-  accessTokenKeys.forEach((key) => {
-    if (key in currentArg) {
-      updated[key] = accessToken
-      shouldUpdate = true
-    }
-  })
-
-  // Set authorization headers
-  if ('authorization' in currentArg) {
-    updated.authorization = `Bearer ${accessToken}`
-    shouldUpdate = true
+  // Replace token key with actual token if it exists
+  if ('token' in currentArg) {
+    return { ...currentArg, token: accessToken }
   }
 
-  if ('Authorization' in currentArg) {
-    updated.Authorization = `Bearer ${accessToken}`
-    shouldUpdate = true
-  }
-
-  return shouldUpdate ? updated : arg
+  return arg
 }
 
-/**
- * Injects the access token into all argument objects in an array.
- */
-const getArgsWithAccessToken = (args: unknown[], accessToken: string | null) =>
-  args.map((arg) => updateArgWithAccessToken(arg, accessToken))
-
 // Common strings that indicate an unauthorized/expired token response
+// These match the exact error messages from the server's authenticateSocketEvent function
 const unauthorizedIndicators = [
-  'jwt expired',
-  'token expired',
-  'expired token',
-  'invalid token',
-  'unauthorized',
+  'token has expired', // Matches "Token has expired." from jwt.TokenExpiredError
+  'invalid token', // Matches "Invalid token." from jwt.JsonWebTokenError
+  'token not yet valid', // Matches "Token not yet valid." from jwt.NotBeforeError
+  'authentication failed', // Matches "Authentication failed." from general auth errors
+  'jwt expired', // Legacy/fallback indicator
+  'unauthorized', // Legacy/fallback indicator
 ] as const
 
 /**
  * Checks if a server response indicates unauthorized/expired token.
- * Looks for 401 status codes or token expiration messages in various formats.
+ * The server responds with acknowledgements in the format:
+ * - Success: { success: true, data: any }
+ * - Failure: { success: false, error: string }
  */
 const isUnauthorizedResponse = (ackArgs: unknown[]) =>
   ackArgs.some((arg) => {
-    if (!arg) return false
+    if (!arg || typeof arg !== 'object') return false
 
-    // Check for 401 status code
-    if (typeof arg === 'number') {
-      return arg === 401
-    }
+    const value = arg as Record<string, unknown>
 
-    // Check for error messages in strings
-    if (typeof arg === 'string') {
-      const lower = arg.toLowerCase()
-      return unauthorizedIndicators.some((indicator) => lower.includes(indicator))
-    }
+    // Check if this is an error response (success: false)
+    if (value.success !== false) return false
 
-    // Check for error objects with status codes or messages
-    if (typeof arg === 'object') {
-      const value = arg as Record<string, unknown>
-      const status = value.status ?? value.code ?? value.errorCode
-      if (
-        status === 401 ||
-        status === '401' ||
-        status === 'TOKEN_EXPIRED' ||
-        status === 'token_expired'
-      ) {
-        return true
-      }
-
-      const message =
-        value.message ?? value.error ?? value.detail ?? value.reason ?? value.title
-      if (typeof message === 'string') {
-        const lower = message.toLowerCase()
-        return unauthorizedIndicators.some((indicator) => lower.includes(indicator))
-      }
+    const errorMessage = value.error
+    if (typeof errorMessage === 'string') {
+      const lower = errorMessage.toLowerCase()
+      return unauthorizedIndicators.some((indicator) =>
+        lower.includes(indicator)
+      )
     }
 
     return false
@@ -257,7 +215,9 @@ socket.emit = ((event: string, ...args: unknown[]) => {
 
   const attemptEmit = (attempt: number, token: string | null) => {
     // Inject the access token into arguments
-    const argsWithToken = getArgsWithAccessToken(baseArgs, token)
+    const argsWithToken = baseArgs.map((arg) =>
+      updateArgWithAccessToken(arg, token)
+    )
 
     // If no acknowledgment callback, just emit and return
     if (!ack) {

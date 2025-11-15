@@ -291,70 +291,46 @@ export default function NewConversation() {
     setConvoError(null)
 
     if (isSocketConnected) {
-      socket.emit('list-conversations', { token: '' })
+      socket.emit('list-conversations', { token: '' }, (response: unknown) => {
+        setIsFetchingConvos(false)
+
+        if (!response || typeof response !== 'object') {
+          setConvoError('Invalid response from server.')
+          setPreviousConvos([])
+          return
+        }
+
+        const ackResponse = response as {
+          success?: boolean
+          data?: unknown
+          error?: unknown
+        }
+
+        if (!ackResponse.success) {
+          setConvoError(String(ackResponse.error || 'Failed to load conversations.'))
+          setPreviousConvos([])
+          return
+        }
+
+        const normalized = normalizeConversations(ackResponse.data as any)
+        setPreviousConvos(normalized)
+        setConvoError(null)
+      })
     } else {
       setConvoError('Waiting for connection...')
       setIsFetchingConvos(false)
     }
-  }, [isLoggedIn, isSocketConnected])
+  }, [isLoggedIn, isSocketConnected, normalizeConversations])
 
   useEffect(() => {
     if (!isLoggedIn) {
       return
     }
 
-    const onResponse = (payload: unknown) => {
-      if (!payload || typeof payload !== 'object') {
-        return
-      }
-
-      const response = payload as {
-        event?: unknown
-        data?: unknown
-        error?: unknown
-        status?: unknown
-      }
-
-      if (response.event !== 'list-conversations') {
-        return
-      }
-
-      setIsFetchingConvos(false)
-
-      if (response.error) {
-        setConvoError(String(response.error))
-        setPreviousConvos([])
-        return
-      }
-
-      if (typeof response.status === 'number' && response.status >= 400) {
-        setConvoError(
-          `Unable to load conversations (status ${response.status}).`
-        )
-        setPreviousConvos([])
-        return
-      }
-
-      const normalized = normalizeConversations(response.data as any)
-      setPreviousConvos(normalized)
-      setConvoError(null)
-    }
-
-    socket.on('response', onResponse)
-
     if (isSocketConnected) {
       fetchConversations()
     }
-
-    return () => {
-      socket.off('response', onResponse)
-    }
-  }, [
-    fetchConversations,
-    isLoggedIn,
-    isSocketConnected,
-    normalizeConversations,
-  ])
+  }, [fetchConversations, isLoggedIn, isSocketConnected])
 
   const submitHandler = async () => {
     if (!isLoggedIn || !convoName.trim() || isCreatingConvo) {
