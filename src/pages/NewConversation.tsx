@@ -64,18 +64,82 @@ const Title = styled.div`
   }
 `
 
-const AppDetails = styled.div`
+const LandingContainer = styled.div`
   box-sizing: border-box;
-  font-size: 1.25rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
-  font-weight: 500;
   max-width: 40rem;
+  margin: 0 auto;
+
+  @media (max-width: 40rem) {
+    padding: 0 1rem;
+  }
+`
+
+const TwoColumnLayout = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2rem;
+  margin-top: 3rem;
+
+  @media (max-width: 40rem) {
+    grid-template-columns: 1fr;
+    margin-top: 1.5rem;
+  }
+`
+
+const FeatureCell = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100%;
+
+  @media (max-width: 40rem) {
+    display: block;
+    height: auto;
+    margin-bottom: 2rem;
+  }
+`
+
+const AuthCell = styled.div`
+  flex: 1;
+  max-width: 32rem;
+
+  @media (max-width: 40rem) {
+    flex: 0 0 28rem;
+  }
+`
+
+const Tagline = styled.div`
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #666;
+  font-weight: 400;
+
+  @media (prefers-color-scheme: dark) {
+    color: #aaa;
+  }
+`
+
+const FeatureList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
 
   & li {
     font-size: 1rem;
     font-weight: 400;
-    margin: 0.8rem 0;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    position: relative;
+
+    &:before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--accent-color);
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
   }
 `
 
@@ -307,7 +371,9 @@ export default function NewConversation() {
         }
 
         if (!ackResponse.success) {
-          setConvoError(String(ackResponse.error || 'Failed to load conversations.'))
+          setConvoError(
+            String(ackResponse.error || 'Failed to load conversations.')
+          )
           setPreviousConvos([])
           return
         }
@@ -386,17 +452,28 @@ export default function NewConversation() {
   if (!isLoggedIn) {
     return (
       <Content>
-        <Title>OneTimeChat</Title>
-        <AppDetails>
-          Stay on top of your team's quick chats without keeping a browser tab
-          open.
-          <ul>
-            <li>Jump into conversations instantly from any device.</li>
-            <li>Share rooms with a link and manage membership in one place.</li>
-            <li>Conversations expire 30 days after the last activity.</li>
-          </ul>
-        </AppDetails>
-        <LoginSignup />
+        <LandingContainer>
+          <Title>OneTimeChat</Title>
+          <Tagline>
+            Team messaging that doesn't require everyone to sign up or download
+            an app
+          </Tagline>
+          <TwoColumnLayout>
+            <FeatureCell>
+              <FeatureList>
+                <li>Create conversations and share them with a simple link</li>
+                <li>
+                  Anyone with the link can join instantly — no account needed
+                </li>
+                <li>Messages are accessible from any device, any browser</li>
+                <li>Conversations auto-expire 30 days after last activity</li>
+              </FeatureList>
+            </FeatureCell>
+            <AuthCell>
+              <LoginSignup />
+            </AuthCell>
+          </TwoColumnLayout>
+        </LandingContainer>
       </Content>
     )
   }
