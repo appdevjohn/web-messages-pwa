@@ -79,7 +79,6 @@ const AppDetails = styled.div`
   }
 `
 
-
 const Subtitle = styled.div`
   text-align: left;
   font-size: 1.3rem;
@@ -234,13 +233,24 @@ export default function NewConversation() {
   useEffect(() => {
     const onConnect = () => setIsSocketConnected(true)
     const onDisconnect = () => setIsSocketConnected(false)
+    const onConnectError = (error: Error) => {
+      console.error('Socket connection error:', error)
+      setIsSocketConnected(false)
+    }
 
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
+    socket.on('connect_error', onConnectError)
+
+    // Check current state after setting up listeners to avoid race condition
+    if (socket.connected) {
+      setIsSocketConnected(true)
+    }
 
     return () => {
       socket.off('connect', onConnect)
       socket.off('disconnect', onDisconnect)
+      socket.off('connect_error', onConnectError)
     }
   }, [])
 
@@ -252,58 +262,22 @@ export default function NewConversation() {
   }, [isLoggedIn])
 
   const normalizeConversations = useCallback(
-    (payload: unknown): StoredConversationType[] => {
-      const candidates = Array.isArray(payload)
-        ? payload
-        : typeof payload === 'object' && payload
-        ? Array.isArray((payload as { conversations?: unknown }).conversations)
-          ? (payload as { conversations: unknown[] }).conversations
-          : []
-        : []
-
-      const parsed = candidates
-        .map((raw) => {
-          if (!raw || typeof raw !== 'object') {
-            return null
-          }
-          const item = raw as Record<string, unknown>
-          const id =
-            (typeof item.id === 'string' && item.id) ||
-            (typeof item.convoId === 'string' && item.convoId)
-
-          if (!id) {
-            return null
-          }
-
-          const name =
-            (typeof item.name === 'string' && item.name) ||
-            'Untitled conversation'
-          const updatedAt =
-            (typeof item.updatedAt === 'string' && item.updatedAt) ||
-            (typeof item.createdAt === 'string' && item.createdAt) ||
-            new Date().toISOString()
-          const deletion =
-            (typeof item.deletionDate === 'string' && item.deletionDate) ||
-            (typeof item.expiresAt === 'string' && item.expiresAt) ||
-            updatedAt
-
-          const parsedUpdated = new Date(updatedAt)
-          const parsedDeletion = new Date(deletion)
-
-          return {
-            convoId: id,
-            name,
-            dateStored: Number.isNaN(parsedUpdated.getTime())
-              ? new Date()
-              : parsedUpdated,
-            deletionDate: Number.isNaN(parsedDeletion.getTime())
-              ? new Date()
-              : parsedDeletion,
-          }
-        })
-        .filter((value): value is StoredConversationType => Boolean(value))
-
-      return parsed
+    (payload: {
+      conversations: Array<{
+        id: string
+        name: string
+        createdAt: string
+        updatedAt: string
+        creatorId: string
+        deletionDate: string
+      }>
+    }): StoredConversationType[] => {
+      return payload.conversations.map((convo) => ({
+        convoId: convo.id,
+        name: convo.name,
+        dateStored: new Date(convo.updatedAt),
+        deletionDate: new Date(convo.deletionDate),
+      }))
     },
     []
   )
@@ -317,7 +291,7 @@ export default function NewConversation() {
     setConvoError(null)
 
     if (isSocketConnected) {
-      socket.emit('list-conversations')
+      socket.emit('list-conversations', { token: '' })
     } else {
       setConvoError('Waiting for connection...')
       setIsFetchingConvos(false)
@@ -361,7 +335,7 @@ export default function NewConversation() {
         return
       }
 
-      const normalized = normalizeConversations(response.data)
+      const normalized = normalizeConversations(response.data as any)
       setPreviousConvos(normalized)
       setConvoError(null)
     }
