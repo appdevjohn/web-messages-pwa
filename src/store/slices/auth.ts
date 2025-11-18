@@ -70,37 +70,44 @@ const initialState: AuthState = {
   isInitialized: false,
 }
 
-export const initializeAuth = createAsyncThunk<TokenPair | null, void, AsyncThunkConfig>(
-  'auth/initialize',
-  async (_, { rejectWithValue }) => {
-    if (isInitializing) {
-      return null
-    }
-
-    const savedRefreshToken = loadRefreshToken()
-
-    if (!savedRefreshToken) {
-      return null
-    }
-
-    isInitializing = true
-
-    try {
-      const response = await restAPI.post('/auth/refresh', {
-        refreshToken: savedRefreshToken,
-      })
-      return {
-        accessToken: response.data.accessToken,
-        refreshToken: response.data.refreshToken,
-      }
-    } catch (error) {
-      clearRefreshToken()
-      return rejectWithValue('Session expired')
-    } finally {
-      isInitializing = false
-    }
+export const initializeAuth = createAsyncThunk<
+  TokenPair | null,
+  void,
+  AsyncThunkConfig
+>('auth/initialize', async (_, { rejectWithValue }) => {
+  if (isInitializing) {
+    return null
   }
-)
+
+  const savedRefreshToken = loadRefreshToken()
+
+  if (!savedRefreshToken) {
+    return null
+  }
+
+  isInitializing = true
+
+  try {
+    const response = await restAPI.post('/auth/refresh', {
+      refreshToken: savedRefreshToken,
+    })
+    return {
+      accessToken: response.data.accessToken,
+      refreshToken: response.data.refreshToken,
+    }
+  } catch (error: any) {
+    // Don't clear it for network errors (offline, connection drops, etc.)
+    const isNetworkError = !error.response || error.code === 'ERR_NETWORK'
+
+    if (!isNetworkError) {
+      clearRefreshToken()
+    }
+
+    return rejectWithValue(isNetworkError ? 'Network error' : 'Session expired')
+  } finally {
+    isInitializing = false
+  }
+})
 
 export const logIn = createAsyncThunk<TokenPair, Credentials, AsyncThunkConfig>(
   'auth/logIn',
@@ -110,13 +117,17 @@ export const logIn = createAsyncThunk<TokenPair, Credentials, AsyncThunkConfig>(
   }
 )
 
-export const signUp = createAsyncThunk<SignUpResponse, SignUpData, AsyncThunkConfig>(
-  'auth/signUp',
-  async (signUpData) => {
-    const response = await restAPI.post<SignUpResponse>('/auth/signup', signUpData)
-    return response.data
-  }
-)
+export const signUp = createAsyncThunk<
+  SignUpResponse,
+  SignUpData,
+  AsyncThunkConfig
+>('auth/signUp', async (signUpData) => {
+  const response = await restAPI.post<SignUpResponse>(
+    '/auth/signup',
+    signUpData
+  )
+  return response.data
+})
 
 export const refresh = createAsyncThunk<TokenPair, void, AsyncThunkConfig>(
   'auth/refresh',
@@ -237,7 +248,8 @@ export const authSlice = createSlice({
       state.accessToken = null
       state.refreshToken = null
       state.isLoading = false
-      state.error = action.payload || action.error.message || 'Token refresh failed'
+      state.error =
+        action.payload || action.error.message || 'Token refresh failed'
       clearRefreshToken()
     })
     builder.addCase(refresh.pending, (state) => {

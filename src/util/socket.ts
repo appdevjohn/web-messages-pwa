@@ -36,7 +36,6 @@ type RefreshQueueItem = {
 // Create socket.io client with reconnection settings
 const socket = io(URL, {
   reconnection: true, // Automatically reconnect if connection drops
-  reconnectionAttempts: 5, // Try up to 5 times
   reconnectionDelay: 1000, // Wait 1 second between attempts
   timeout: 10000, // 10 second connection timeout
 })
