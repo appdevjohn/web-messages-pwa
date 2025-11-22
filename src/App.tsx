@@ -26,12 +26,14 @@ function App() {
     store.dispatch(initializeAuth())
   }, [])
 
+  // Retrieve user info for users without an account.
   useEffect(() => {
     const name = localStorage.getItem('name') || ''
     const avatar = localStorage.getItem('avatar') || ''
     setUser({ name, avatar })
   }, [])
 
+  // Store user info for users without an account.
   useEffect(() => {
     if (user.name.length > 0 || user.avatar.length > 0) {
       localStorage.setItem('name', user.name)

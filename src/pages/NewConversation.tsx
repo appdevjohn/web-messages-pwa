@@ -5,7 +5,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import styled from 'styled-components'
 
-import restAPI from '../util/rest'
 import socket from '../util/socket'
 import getDaysRemaining from '../util/daysRemaining'
 import { StoredConversationType } from '../types'
@@ -398,26 +397,36 @@ export default function NewConversation() {
     }
   }, [fetchConversations, isLoggedIn, isSocketConnected])
 
-  const submitHandler = async () => {
+  const submitHandler = () => {
     if (!isLoggedIn || !convoName.trim() || isCreatingConvo) {
       return
     }
 
-    try {
-      setIsCreatingConvo(true)
-      const response = await restAPI.post('/conversation', {
-        name: convoName.trim(),
-      })
+    setIsCreatingConvo(true)
+    setConvoError(null)
 
-      const conversation = response.data['conversation']
-      setConvoName('')
-      fetchConversations()
-      navigate(`/${conversation['id']}`)
-    } catch (error) {
-      setConvoError('Unable to create conversation. Please try again.')
-    } finally {
-      setIsCreatingConvo(false)
-    }
+    socket.emit(
+      'create-conversation',
+      {
+        name: convoName.trim(),
+        token: authState.accessToken || undefined,
+      },
+      (response: any) => {
+        setIsCreatingConvo(false)
+
+        if (!response.success) {
+          setConvoError(
+            response.error || 'Unable to create conversation. Please try again.'
+          )
+          return
+        }
+
+        const conversation = response.data.conversation
+        setConvoName('')
+        fetchConversations()
+        navigate(`/${conversation.id}`)
+      }
+    )
   }
 
   const inputContainer = (
