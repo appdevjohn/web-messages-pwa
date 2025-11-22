@@ -19,11 +19,18 @@ const clearRefreshToken = () => {
 }
 
 export interface AuthState {
+  user: {
+    id: string
+    verified: boolean
+    displayName: string
+    username: string
+    email: string | null
+    profilePicURL: string
+  } | null
   accessToken: string | null
   refreshToken: string | null
   isLoading: boolean
   error: string | null
-  isInitialized: boolean
 }
 
 type Credentials = {
@@ -38,12 +45,7 @@ type SignUpData = {
   password: string
 }
 
-type TokenPair = {
-  accessToken: string
-  refreshToken: string
-}
-
-type SignUpResponse = {
+type AuthResponse = {
   user: {
     id: string
     verified: boolean
@@ -63,15 +65,15 @@ type AsyncThunkConfig = {
 }
 
 const initialState: AuthState = {
+  user: null,
   accessToken: null,
   refreshToken: null,
   isLoading: false,
   error: null,
-  isInitialized: false,
 }
 
 export const initializeAuth = createAsyncThunk<
-  TokenPair | null,
+  AuthResponse | null,
   void,
   AsyncThunkConfig
 >('auth/initialize', async (_, { rejectWithValue }) => {
@@ -92,8 +94,10 @@ export const initializeAuth = createAsyncThunk<
       refreshToken: savedRefreshToken,
     })
     return {
+      user: response.data.user,
       accessToken: response.data.accessToken,
       refreshToken: response.data.refreshToken,
+      message: response.data.message,
     }
   } catch (error: any) {
     // Don't clear it for network errors (offline, connection drops, etc.)
@@ -109,27 +113,25 @@ export const initializeAuth = createAsyncThunk<
   }
 })
 
-export const logIn = createAsyncThunk<TokenPair, Credentials, AsyncThunkConfig>(
-  'auth/logIn',
-  async (credentials) => {
-    const response = await restAPI.put<TokenPair>('/auth/login', credentials)
-    return response.data
-  }
-)
-
-export const signUp = createAsyncThunk<
-  SignUpResponse,
-  SignUpData,
+export const logIn = createAsyncThunk<
+  AuthResponse,
+  Credentials,
   AsyncThunkConfig
->('auth/signUp', async (signUpData) => {
-  const response = await restAPI.post<SignUpResponse>(
-    '/auth/signup',
-    signUpData
-  )
+>('auth/logIn', async (credentials) => {
+  const response = await restAPI.put<AuthResponse>('/auth/login', credentials)
   return response.data
 })
 
-export const refresh = createAsyncThunk<TokenPair, void, AsyncThunkConfig>(
+export const signUp = createAsyncThunk<
+  AuthResponse,
+  SignUpData,
+  AsyncThunkConfig
+>('auth/signUp', async (signUpData) => {
+  const response = await restAPI.post<AuthResponse>('/auth/signup', signUpData)
+  return response.data
+})
+
+export const refresh = createAsyncThunk<AuthResponse, void, AsyncThunkConfig>(
   'auth/refresh',
   async (_, { getState, rejectWithValue }) => {
     const state = getState()
@@ -137,7 +139,7 @@ export const refresh = createAsyncThunk<TokenPair, void, AsyncThunkConfig>(
     if (!refreshToken) {
       return rejectWithValue('Missing refresh token')
     }
-    const response = await restAPI.post<TokenPair>('/auth/refresh', {
+    const response = await restAPI.post<AuthResponse>('/auth/refresh', {
       refreshToken,
     })
     return response.data
@@ -169,7 +171,7 @@ export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setTokens: (state, action: PayloadAction<TokenPair>) => {
+    setTokens: (state, action: PayloadAction<AuthResponse>) => {
       state.accessToken = action.payload.accessToken
       state.refreshToken = action.payload.refreshToken
       state.isLoading = false
@@ -187,21 +189,25 @@ export const authSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(initializeAuth.fulfilled, (state, action) => {
       if (action.payload) {
+        state.user = action.payload.user
         state.accessToken = action.payload.accessToken
         state.refreshToken = action.payload.refreshToken
         saveRefreshToken(action.payload.refreshToken)
       }
-      state.isInitialized = true
       state.isLoading = false
     })
-    builder.addCase(initializeAuth.rejected, (state) => {
-      state.isInitialized = true
+    builder.addCase(initializeAuth.rejected, (state, action) => {
+      state.user = null
+      state.accessToken = null
+      state.refreshToken = null
       state.isLoading = false
+      state.error = action.error.message || 'Login failed'
     })
     builder.addCase(initializeAuth.pending, (state) => {
       state.isLoading = true
     })
     builder.addCase(logIn.fulfilled, (state, action) => {
+      state.user = action.payload.user
       state.accessToken = action.payload.accessToken
       state.refreshToken = action.payload.refreshToken
       state.isLoading = false
@@ -209,6 +215,7 @@ export const authSlice = createSlice({
       saveRefreshToken(action.payload.refreshToken)
     })
     builder.addCase(logIn.rejected, (state, action) => {
+      state.user = null
       state.accessToken = null
       state.refreshToken = null
       state.isLoading = false
@@ -220,6 +227,7 @@ export const authSlice = createSlice({
       state.error = null
     })
     builder.addCase(signUp.fulfilled, (state, action) => {
+      state.user = action.payload.user
       state.accessToken = action.payload.accessToken
       state.refreshToken = action.payload.refreshToken
       state.isLoading = false
@@ -227,6 +235,7 @@ export const authSlice = createSlice({
       saveRefreshToken(action.payload.refreshToken)
     })
     builder.addCase(signUp.rejected, (state, action) => {
+      state.user = null
       state.accessToken = null
       state.refreshToken = null
       state.isLoading = false
@@ -238,6 +247,7 @@ export const authSlice = createSlice({
       state.error = null
     })
     builder.addCase(refresh.fulfilled, (state, action) => {
+      state.user = action.payload.user
       state.accessToken = action.payload.accessToken
       state.refreshToken = action.payload.refreshToken
       state.isLoading = false
@@ -245,6 +255,7 @@ export const authSlice = createSlice({
       saveRefreshToken(action.payload.refreshToken)
     })
     builder.addCase(refresh.rejected, (state, action) => {
+      state.user = null
       state.accessToken = null
       state.refreshToken = null
       state.isLoading = false
@@ -257,6 +268,7 @@ export const authSlice = createSlice({
       state.error = null
     })
     builder.addCase(logOut.fulfilled, (state) => {
+      state.user = null
       state.accessToken = null
       state.refreshToken = null
       state.isLoading = false
@@ -264,6 +276,7 @@ export const authSlice = createSlice({
       clearRefreshToken()
     })
     builder.addCase(logOut.rejected, (state, action) => {
+      state.user = null
       state.accessToken = null
       state.refreshToken = null
       state.isLoading = false
@@ -275,6 +288,7 @@ export const authSlice = createSlice({
       state.error = null
     })
     builder.addCase(logOutEverywhere.fulfilled, (state) => {
+      state.user = null
       state.accessToken = null
       state.refreshToken = null
       state.isLoading = false
@@ -282,6 +296,7 @@ export const authSlice = createSlice({
       clearRefreshToken()
     })
     builder.addCase(logOutEverywhere.rejected, (state, action) => {
+      state.user = null
       state.accessToken = null
       state.refreshToken = null
       state.isLoading = false

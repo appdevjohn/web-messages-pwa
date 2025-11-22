@@ -1,8 +1,9 @@
 import { useState, useEffect, useContext } from 'react'
+import { useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { MessageType, MessagesPayloadType } from '../types'
+import { MessageType } from '../types'
 import getDaysRemaining from '../util/daysRemaining'
 import socket from '../util/socket'
 import UserContext from '../util/userContext'
@@ -10,6 +11,7 @@ import MessageView from '../components/MessageView'
 import NavBar from '../components/NavBar'
 import ComposeBox from '../components/ComposeBox'
 import EditProfile from '../components/EditProfile'
+import type { RootState } from '../store/store'
 
 const ErrorViewContainer = styled.div`
   margin: 6rem auto 0 auto;
@@ -83,14 +85,16 @@ function ShareChat() {
 
 export default function ConversationView() {
   const { convoId } = useParams()
+  const { user: authUser, accessToken } = useSelector(
+    (state: RootState) => state.auth
+  )
   const [user, setUser] = useContext(UserContext)
   const [shouldEditUser, setShouldEditUser] = useState(false)
 
-  const [isConnected, setIsConnected] = useState(socket.connected)
+  const [isSocketConnected, setIsSocketConnected] = useState(socket.connected)
   const [convoName, setConvoName] = useState('')
   const [deletionDate, setDeletionDate] = useState<Date>()
   const [messages, setMessages] = useState<MessageType[]>([])
-  const [sendingMessage, setSendingMessage] = useState<MessageType>()
   const daysRemaining = deletionDate
     ? getDaysRemaining(new Date(), deletionDate)
     : undefined
@@ -99,49 +103,17 @@ export default function ConversationView() {
 
   // Handle WebSocket events.
   useEffect(() => {
-    const onError = (errorMessage: string) => {
-      if (errorMessage === 'Error: There is no conversation with that ID.') {
-        setDoesChatExist(false)
-      }
-    }
-    const onConnect = () => setIsConnected(true)
-    const onDisconnect = () => setIsConnected(false)
-    const onMessages = (payload: MessagesPayloadType) => {
-      const parsedMessages: MessageType[] = payload.messages.map((msg) => ({
-        id: msg['id'],
-        userId: `${msg['senderName']}-${msg['senderAvatar']}`,
-        timestamp: new Date(msg['createdAt']),
-        content: msg['content'],
-        type: msg['type'],
-        userProfilePic: msg['senderAvatar'],
-        userFullName: msg['senderName'],
-        delivered: 'delivered',
-      }))
-      setMessages(parsedMessages)
-      setConvoName(payload.conversation['name'])
-      setDeletionDate(new Date(payload.deletionDate))
-      setDoesChatExist(true)
-    }
-    const onResponse = (payload: any) => {
-      const eventType = payload['event']
-      switch (eventType) {
-        case 'send-message':
-          break
-        case 'create-conversation':
-          break
-        case 'delete-conversation':
-          break
-
-        default:
-          break
-      }
-    }
-    const onUpdate = (newMessage: any) => {
+    const onConnect = () => setIsSocketConnected(true)
+    const onDisconnect = () => setIsSocketConnected(false)
+    const onMessageCreated = (payload: any) => {
+      const newMessage = payload.message
       setMessages((msgs) => {
         const messagesCopy = msgs.map((m) => ({ ...m }))
         messagesCopy.push({
           id: newMessage['id'],
-          userId: `${newMessage['senderName']}-${newMessage['senderAvatar']}`,
+          userId:
+            newMessage['senderId'] ||
+            `${newMessage['senderName']}-${newMessage['senderAvatar']}`,
           timestamp: new Date(newMessage['createdAt']),
           content: newMessage['content'],
           type: newMessage['type'],
@@ -152,81 +124,103 @@ export default function ConversationView() {
         return messagesCopy
       })
     }
+    const onConversationUpdated = (payload: any) => {
+      setConvoName(payload.conversation['name'])
+      setDeletionDate(new Date(payload.deletionDate))
+    }
 
-    socket.on('error', onError)
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
-    socket.on('messages', onMessages)
-    socket.on('response', onResponse)
-    socket.on(`${convoId}`, onUpdate)
+    socket.on('message-created', onMessageCreated)
+    socket.on('conversation-updated', onConversationUpdated)
+
+    // Check current state after setting up listeners to avoid race condition
+    if (socket.connected) {
+      setIsSocketConnected(true)
+    }
 
     return () => {
-      socket.off('error', onError)
       socket.off('connect', onConnect)
       socket.off('disconnect', onDisconnect)
-      socket.off('messages', onMessages)
-      socket.off('response', onResponse)
-      socket.off(`${convoId}`, onUpdate)
+      socket.off('message-created', onMessageCreated)
+      socket.off('conversation-updated', onConversationUpdated)
     }
   }, [])
-
-  // Store chat meta data in localStorage.
-  useEffect(() => {
-    if (convoId && deletionDate) {
-      const storedChatStrings = localStorage.getItem('previous-chats')
-      const storedChats: string[] = storedChatStrings
-        ? JSON.parse(storedChatStrings)
-        : []
-
-      if (!storedChats.includes(convoId)) {
-        storedChats.push(convoId)
-      }
-
-      localStorage.setItem('previous-chats', JSON.stringify(storedChats))
-    }
-  }, [convoId, deletionDate])
 
   // Scroll to bottom of page when new messages roll in.
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight)
   }, [messages])
 
-  // Fetch messages when connected.
+  // Join conversation and fetch messages when connected.
   useEffect(() => {
-    socket.emit('get-messages', { convoId: convoId })
-  }, [isConnected])
+    if (!isSocketConnected || !convoId) return
 
-  // Send messages as they appear in the transcript.
-  useEffect(() => {
-    if (!convoId) return
-    if (sendingMessage) {
-      socket.emit('send-message', {
-        convoId: convoId,
-        content: sendingMessage.content,
-        userName: user.name,
-        userAvatar: user.avatar,
+    // Join the conversation room to receive real-time updates
+    socket.emit('join-conversation', { convoId }, (response: any) => {
+      if (!response.success) {
+        console.error('Failed to join conversation:', response.error)
+        return
+      }
+
+      // Fetch messages for this conversation
+      socket.emit('list-messages', { convoId }, (response: any) => {
+        if (!response.success) {
+          if (response.error?.includes('no conversation')) {
+            setDoesChatExist(false)
+          }
+          console.error('Failed to fetch messages:', response.error)
+          return
+        }
+
+        const parsedMessages: MessageType[] = response.data.messages.map(
+          (msg: any) => ({
+            id: msg['id'],
+            userId:
+              msg['senderId'] || `${msg['senderName']}-${msg['senderAvatar']}`,
+            timestamp: new Date(msg['createdAt']),
+            content: msg['content'],
+            type: msg['type'],
+            userProfilePic: msg['senderAvatar'],
+            userFullName: msg['senderName'],
+            delivered: 'delivered',
+          })
+        )
+        setMessages(parsedMessages)
+        setConvoName(response.data.conversation['name'])
+        setDeletionDate(new Date(response.data.deletionDate))
+        setDoesChatExist(true)
       })
-      setSendingMessage(undefined)
-    }
-  }, [sendingMessage])
+    })
+  }, [isSocketConnected, convoId])
 
   const sendMessageHandler = (messageContent: string) => {
-    if (!messageContent) return
-    setSendingMessage({
-      content: messageContent,
-      delivered: 'not-delivered',
-      timestamp: new Date(),
-      type: 'text',
-      userFullName: user.name,
-      userProfilePic: user.avatar,
-      userId: `${user.name}-${user.avatar}`,
-      id: Math.random().toString(),
-    })
+    if (!messageContent || !convoId) return
+
+    // Send message to server - it will be added to UI via 'message-created' broadcast
+    socket.emit(
+      'create-message',
+      {
+        convoId: convoId,
+        content: messageContent,
+        userName: user.name,
+        userAvatar: user.avatar,
+        token: accessToken, // Server should automatically use logged-in user if token is provided
+      },
+      (response: any) => {
+        if (!response.success) {
+          console.error('Failed to send message:', response.error)
+          // TODO: Show error to user
+          return
+        }
+        // Message successfully sent and will appear via 'message-created' event
+      }
+    )
   }
 
   return (
     <>
-      {(user.name.length === 0 || shouldEditUser) && (
+      {!authUser && (user.name.length === 0 || shouldEditUser) && (
         <EditProfile
           user={user}
           onChangeUser={({ name, avatar }) => {
@@ -260,15 +254,15 @@ export default function ConversationView() {
             title={"This is not the converation you're looking for."}
             message={'This chat has either expired or never existed.'}
           />
-        ) : messages.length === 0 && !sendingMessage ? (
+        ) : messages.length === 0 ? (
           <ShareChat />
         ) : (
           <MessageView
-            highlightId={`${user.name}-${user.avatar}`}
+            highlightId={authUser?.id || `${user.name}-${user.avatar}`}
             isLoadingOlderMessages={false}
             onLoadOlderMessages={() => {}}
             showLoadOlderMessagesButton={false}
-            messages={sendingMessage ? [...messages, sendingMessage] : messages}
+            messages={messages}
           />
         )}
         <ComposeBox
