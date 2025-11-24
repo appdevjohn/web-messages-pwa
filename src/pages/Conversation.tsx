@@ -106,6 +106,9 @@ export default function ConversationView() {
     const onConnect = () => setIsSocketConnected(true)
     const onDisconnect = () => setIsSocketConnected(false)
     const onMessageCreated = (payload: any) => {
+      const newMessageConvoId = payload.convoId
+      if (newMessageConvoId !== convoId) return // Ignore messages for other conversations
+
       const newMessage = payload.message
       setMessages((msgs) => {
         const messagesCopy = msgs.map((m) => ({ ...m }))
@@ -192,6 +195,11 @@ export default function ConversationView() {
         setDoesChatExist(true)
       })
     })
+
+    // Cleanup: Leave the conversation room when component unmounts or convoId changes
+    return () => {
+      socket.emit('leave-conversation', { convoId })
+    }
   }, [isSocketConnected, convoId])
 
   const sendMessageHandler = (messageContent: string) => {

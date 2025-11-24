@@ -402,8 +402,26 @@ export default function NewConversation() {
       return
     }
 
+    // Check socket connection before attempting to create conversation
+    if (!isSocketConnected) {
+      setConvoError('Not connected to server. Please try again.')
+      return
+    }
+
     setIsCreatingConvo(true)
     setConvoError(null)
+
+    // Track whether the request has timed out to ignore delayed responses
+    let hasTimedOut = false
+
+    // Set a timeout to reset the creating state if no response is received
+    const timeoutId = setTimeout(() => {
+      hasTimedOut = true
+      setIsCreatingConvo(false)
+      setConvoError(
+        'Request timed out. Please check your connection and try again.'
+      )
+    }, 10000) // 10 second timeout
 
     socket.emit(
       'create-conversation',
@@ -412,6 +430,13 @@ export default function NewConversation() {
         token: authState.accessToken || undefined,
       },
       (response: any) => {
+        clearTimeout(timeoutId)
+
+        // Ignore response if we've already timed out
+        if (hasTimedOut) {
+          return
+        }
+
         setIsCreatingConvo(false)
 
         if (!response.success) {
