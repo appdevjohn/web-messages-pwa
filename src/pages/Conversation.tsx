@@ -162,6 +162,13 @@ export default function ConversationView() {
     // Join the conversation room to receive real-time updates
     socket.emit('join-conversation', { convoId }, (response: any) => {
       if (!response.success) {
+        /*
+          IMPORTANT:
+          A response will still succeed even if the conversation does not exist.
+          The 'list-messages' call below will return an error in that case.
+          Joining a room only means you want to listen for updates to that room,
+          it does not validate the room's existence.
+        */
         console.error('Failed to join conversation:', response.error)
         return
       }
