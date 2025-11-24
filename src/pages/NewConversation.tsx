@@ -5,7 +5,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import styled from 'styled-components'
 
-import restAPI from '../util/rest'
 import socket from '../util/socket'
 import getDaysRemaining from '../util/daysRemaining'
 import { StoredConversationType } from '../types'
@@ -398,26 +397,61 @@ export default function NewConversation() {
     }
   }, [fetchConversations, isLoggedIn, isSocketConnected])
 
-  const submitHandler = async () => {
+  const submitHandler = () => {
     if (!isLoggedIn || !convoName.trim() || isCreatingConvo) {
       return
     }
 
-    try {
-      setIsCreatingConvo(true)
-      const response = await restAPI.post('/conversation', {
-        name: convoName.trim(),
-      })
-
-      const conversation = response.data['conversation']
-      setConvoName('')
-      fetchConversations()
-      navigate(`/${conversation['id']}`)
-    } catch (error) {
-      setConvoError('Unable to create conversation. Please try again.')
-    } finally {
-      setIsCreatingConvo(false)
+    // Check socket connection before attempting to create conversation
+    if (!isSocketConnected) {
+      setConvoError('Not connected to server. Please try again.')
+      return
     }
+
+    setIsCreatingConvo(true)
+    setConvoError(null)
+
+    // Track whether the request has timed out to ignore delayed responses
+    let hasTimedOut = false
+
+    // Set a timeout to reset the creating state if no response is received
+    const timeoutId = setTimeout(() => {
+      hasTimedOut = true
+      setIsCreatingConvo(false)
+      setConvoError(
+        'Request timed out. Please check your connection and try again.'
+      )
+    }, 10000) // 10 second timeout
+
+    socket.emit(
+      'create-conversation',
+      {
+        name: convoName.trim(),
+        token: authState.accessToken || undefined,
+      },
+      (response: any) => {
+        clearTimeout(timeoutId)
+
+        // Ignore response if we've already timed out
+        if (hasTimedOut) {
+          return
+        }
+
+        setIsCreatingConvo(false)
+
+        if (!response.success) {
+          setConvoError(
+            response.error || 'Unable to create conversation. Please try again.'
+          )
+          return
+        }
+
+        const conversation = response.data.conversation
+        setConvoName('')
+        fetchConversations()
+        navigate(`/${conversation.id}`)
+      }
+    )
   }
 
   const inputContainer = (
