@@ -100,6 +100,9 @@ export default function ConversationView() {
     : undefined
 
   const [doesChatExist, setDoesChatExist] = useState<boolean>()
+  const shouldShowEditProfile =
+    (!authUser && (user.name.length === 0 || shouldEditUser)) ||
+    (!!authUser && shouldEditUser)
 
   // Handle WebSocket events.
   useEffect(() => {
@@ -154,6 +157,25 @@ export default function ConversationView() {
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight)
   }, [messages])
+
+  // Update messages when logged-in user's profile changes
+  useEffect(() => {
+    if (!authUser) return
+
+    setMessages((prevMessages) => {
+      return prevMessages.map((msg) => {
+        // Only update messages from the logged-in user
+        if (msg.userId === authUser.id) {
+          return {
+            ...msg,
+            userProfilePic: authUser.profilePicURL,
+            userFullName: authUser.displayName,
+          }
+        }
+        return msg
+      })
+    })
+  }, [authUser?.profilePicURL, authUser?.displayName])
 
   // Join conversation and fetch messages when connected.
   useEffect(() => {
@@ -212,14 +234,17 @@ export default function ConversationView() {
   const sendMessageHandler = (messageContent: string) => {
     if (!messageContent || !convoId) return
 
+    const senderName = authUser?.displayName || user.name
+    const senderAvatar = authUser?.profilePicURL || user.avatar
+
     // Send message to server - it will be added to UI via 'message-created' broadcast
     socket.emit(
       'create-message',
       {
         convoId: convoId,
         content: messageContent,
-        userName: user.name,
-        userAvatar: user.avatar,
+        userName: senderName,
+        userAvatar: senderAvatar,
         token: accessToken, // Server should automatically use logged-in user if token is provided
       },
       (response: any) => {
@@ -235,7 +260,7 @@ export default function ConversationView() {
 
   return (
     <>
-      {!authUser && (user.name.length === 0 || shouldEditUser) && (
+      {shouldShowEditProfile && (
         <EditProfile
           user={user}
           onChangeUser={({ name, avatar }) => {

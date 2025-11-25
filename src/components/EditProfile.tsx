@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import styled, { keyframes } from 'styled-components'
 import { UserType } from '../util/userContext'
 import ICON_MAP from '../util/profileIcons'
+import restAPI from '../util/rest'
+import type { RootState, AppDispatch } from '../store/store'
+import { updateUserProfile as updateUserProfileAction } from '../store/slices/auth'
 
 const appear = keyframes`
   from {
@@ -134,6 +138,18 @@ const SaveButton = styled.button`
   margin-top: 8px;
   font-size: 0.85rem;
   font-weight: 700;
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`
+
+const ErrorText = styled.div`
+  color: #c72c41;
+  font-size: 0.8rem;
+  margin-top: 8px;
+  text-align: center;
 `
 
 const EditProfile = ({
@@ -145,8 +161,47 @@ const EditProfile = ({
   onChangeUser: (value: UserType) => void
   onDismiss: () => void
 }) => {
-  const [name, setName] = useState(user?.name || '')
-  const [avatar, setAvatar] = useState(user?.avatar || '')
+  const dispatch = useDispatch<AppDispatch>()
+  const authUser = useSelector((state: RootState) => state.auth.user)
+  const [name, setName] = useState(authUser?.displayName || user?.name || '')
+  const [avatar, setAvatar] = useState(
+    authUser?.profilePicURL || user?.avatar || ''
+  )
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setName(authUser?.displayName || user?.name || '')
+    setAvatar(authUser?.profilePicURL || user?.avatar || '')
+  }, [authUser, user])
+
+  const handleSave = async () => {
+    if (authUser) {
+      try {
+        setIsSaving(true)
+        setError(null)
+        await restAPI.put('/auth/update-profile', {
+          displayName: name,
+          profilePicURL: avatar,
+        })
+        dispatch(
+          updateUserProfileAction({
+            displayName: name,
+            profilePicURL: avatar,
+          })
+        )
+        onDismiss()
+      } catch (err) {
+        console.error(err)
+        setError('Unable to update profile. Please try again.')
+      } finally {
+        setIsSaving(false)
+      }
+      return
+    }
+
+    onChangeUser({ name, avatar })
+  }
 
   return (
     <Backdrop onClick={onDismiss}>
@@ -176,9 +231,10 @@ const EditProfile = ({
             ))}
           </AvatarGrid>
         </div>
-        <SaveButton onClick={() => onChangeUser({ name, avatar })}>
-          Save
+        <SaveButton onClick={handleSave} disabled={isSaving}>
+          {isSaving ? 'Saving…' : 'Save'}
         </SaveButton>
+        {error && <ErrorText>{error}</ErrorText>}
       </Container>
     </Backdrop>
   )
