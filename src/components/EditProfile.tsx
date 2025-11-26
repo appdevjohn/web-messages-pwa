@@ -152,6 +152,87 @@ const ErrorText = styled.div`
   text-align: center;
 `
 
+const UserInfoSection = styled.div`
+  background-color: var(--content-background);
+  border-radius: 18px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+`
+
+const UserInfoLabel = styled.div`
+  font-size: 0.7rem;
+  color: gray;
+  margin-bottom: 4px;
+`
+
+const UserInfoValue = styled.div`
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+`
+
+const DisclaimerText = styled.div`
+  font-size: 0.75rem;
+  color: gray;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background-color: rgba(128, 128, 128, 0.1);
+  border-radius: 12px;
+  line-height: 1.4;
+`
+
+const PreviewText = styled.div`
+  font-size: 0.8rem;
+  color: var(--text-color);
+  margin-top: 12px;
+  padding: 8px 12px;
+  background-color: var(--content-background);
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  font-weight: 500;
+`
+
+const AuthSection = styled.div`
+  margin-top: 16px;
+  padding: 16px 0;
+  text-align: center;
+`
+
+const AuthText = styled.div`
+  font-size: 0.85rem;
+  color: gray;
+  margin-bottom: 12px;
+`
+
+const AuthButton = styled.button`
+  width: 100%;
+  height: 40px;
+  cursor: pointer;
+  background-color: transparent;
+  color: var(--accent-color);
+  border: 2px solid var(--accent-color);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+
+  &:hover {
+    background-color: var(--accent-color);
+    color: white;
+    transition: all 0.2s ease;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+`
+
 const EditProfile = ({
   user,
   onChangeUser,
@@ -169,6 +250,8 @@ const EditProfile = ({
   )
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [previousName] = useState(user?.name || '')
+  const [previousAvatar] = useState(user?.avatar || '')
 
   useEffect(() => {
     setName(authUser?.displayName || user?.name || '')
@@ -203,9 +286,29 @@ const EditProfile = ({
     onChangeUser({ name, avatar })
   }
 
+  const hasChangedProfile =
+    !authUser && (name !== previousName || avatar !== previousAvatar)
+  const displayAvatar = avatar || 'default'
+  const displayName = name || 'Anonymous'
+
   return (
     <Backdrop onClick={onDismiss}>
       <Container onClick={(e) => e.stopPropagation()}>
+        {authUser && (
+          <UserInfoSection>
+            <div>
+              <UserInfoLabel>Username</UserInfoLabel>
+              <UserInfoValue>@{authUser.username}</UserInfoValue>
+            </div>
+            {authUser.email && (
+              <div>
+                <UserInfoLabel>Email</UserInfoLabel>
+                <UserInfoValue>{authUser.email}</UserInfoValue>
+              </div>
+            )}
+          </UserInfoSection>
+        )}
+
         <div style={{ marginBottom: '1rem', width: '100%' }}>
           <InputTitle>Screen Name</InputTitle>
           <Input
@@ -231,10 +334,35 @@ const EditProfile = ({
             ))}
           </AvatarGrid>
         </div>
+
+        {!authUser && (
+          <PreviewText>
+            Your messages will be sent as {displayName} ({displayAvatar})
+          </PreviewText>
+        )}
+
+        {!authUser && hasChangedProfile && previousName && previousAvatar && (
+          <DisclaimerText>
+            Note: All previous messages will still appear to be sent as{' '}
+            {previousName} ({previousAvatar})
+          </DisclaimerText>
+        )}
+
         <SaveButton onClick={handleSave} disabled={isSaving}>
           {isSaving ? 'Saving…' : 'Save'}
         </SaveButton>
         {error && <ErrorText>{error}</ErrorText>}
+
+        {!authUser && (
+          <>
+            <AuthSection>
+              <AuthText>
+                Want to save your profile and use it everywhere?
+              </AuthText>
+              <AuthButton onClick={() => {}}>Sign Up or Log In</AuthButton>
+            </AuthSection>
+          </>
+        )}
       </Container>
     </Backdrop>
   )
