@@ -290,23 +290,13 @@ const EditProfile = ({
           </AvatarGrid>
         </div>
 
-        {/* {!authUser && (
-          <PreviewText>
-            Your messages will be sent as {displayName} ({displayAvatar})
-          </PreviewText>
-        )} */}
-
         {!authUser && hasChangedProfile && previousName && previousAvatar && (
-          // <DisclaimerText>
-          //   Note: All previous messages will still appear to be sent as{' '}
-          //   {previousName} ({previousAvatar})
-          // </DisclaimerText>
           <MessageView
             highlightId='new-preview-user'
             showLoadOlderMessagesButton={false}
             isLoadingOlderMessages={false}
             onLoadOlderMessages={() => {}}
-            marginDisabled={true}
+            margin='0 auto'
             messages={[
               {
                 id: 'preview-message-1',
