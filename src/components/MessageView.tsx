@@ -57,13 +57,13 @@ const BlockSenderName = styled.div`
   font-size: 12px;
 `
 
-const View = styled.div`
+const View = styled.div<{ $marginDisabled?: boolean }>`
   width: 100%;
-  margin: 80px auto 92px auto;
+  margin: ${(props) => (props.$marginDisabled ? '0' : '80px auto 92px auto')};
   max-width: 40rem;
 
   @media (min-width: 40rem) {
-    margin-bottom: 124px;
+    margin-bottom: ${(props) => (props.$marginDisabled ? '0' : '124px')};
   }
 `
 
@@ -92,6 +92,7 @@ type ViewProps = {
   showLoadOlderMessagesButton: boolean
   onLoadOlderMessages: () => void
   isLoadingOlderMessages: boolean
+  marginDisabled?: boolean
 }
 
 const MessageBubble = ({
@@ -156,6 +157,7 @@ const MessageView = ({
   isLoadingOlderMessages,
   showLoadOlderMessagesButton,
   onLoadOlderMessages,
+  marginDisabled = false,
   messages,
 }: ViewProps) => {
   const sortedMessages = messages
@@ -189,7 +191,7 @@ const MessageView = ({
   }
 
   return (
-    <View>
+    <View $marginDisabled={marginDisabled}>
       {showLoadOlderMessagesButton ? (
         <ViewLoadMessagesButtonContainer>
           {isLoadingOlderMessages ? (

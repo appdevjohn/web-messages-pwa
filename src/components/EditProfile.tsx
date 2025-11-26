@@ -6,6 +6,7 @@ import ICON_MAP from '../util/profileIcons'
 import restAPI from '../util/rest'
 import type { RootState, AppDispatch } from '../store/store'
 import { updateUserProfile as updateUserProfileAction } from '../store/slices/auth'
+import MessageView from './MessageView'
 
 const appear = keyframes`
   from {
@@ -176,31 +177,8 @@ const UserInfoValue = styled.div`
   }
 `
 
-const DisclaimerText = styled.div`
-  font-size: 0.75rem;
-  color: gray;
-  margin-top: 12px;
-  padding: 8px 12px;
-  background-color: rgba(128, 128, 128, 0.1);
-  border-radius: 12px;
-  line-height: 1.4;
-`
-
-const PreviewText = styled.div`
-  font-size: 0.8rem;
-  color: var(--text-color);
-  margin-top: 12px;
-  padding: 8px 12px;
-  background-color: var(--content-background);
-  border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  text-align: center;
-  font-weight: 500;
-`
-
 const AuthSection = styled.div`
-  margin-top: 16px;
-  padding: 16px 0;
+  margin-top: 24px;
   text-align: center;
 `
 
@@ -208,29 +186,6 @@ const AuthText = styled.div`
   font-size: 0.85rem;
   color: gray;
   margin-bottom: 12px;
-`
-
-const AuthButton = styled.button`
-  width: 100%;
-  height: 40px;
-  cursor: pointer;
-  background-color: transparent;
-  color: var(--accent-color);
-  border: 2px solid var(--accent-color);
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-
-  &:hover {
-    background-color: var(--accent-color);
-    color: white;
-    transition: all 0.2s ease;
-  }
-
-  &:last-child {
-    margin-bottom: 0;
-  }
 `
 
 const EditProfile = ({
@@ -335,17 +290,46 @@ const EditProfile = ({
           </AvatarGrid>
         </div>
 
-        {!authUser && (
+        {/* {!authUser && (
           <PreviewText>
             Your messages will be sent as {displayName} ({displayAvatar})
           </PreviewText>
-        )}
+        )} */}
 
         {!authUser && hasChangedProfile && previousName && previousAvatar && (
-          <DisclaimerText>
-            Note: All previous messages will still appear to be sent as{' '}
-            {previousName} ({previousAvatar})
-          </DisclaimerText>
+          // <DisclaimerText>
+          //   Note: All previous messages will still appear to be sent as{' '}
+          //   {previousName} ({previousAvatar})
+          // </DisclaimerText>
+          <MessageView
+            highlightId='new-preview-user'
+            showLoadOlderMessagesButton={false}
+            isLoadingOlderMessages={false}
+            onLoadOlderMessages={() => {}}
+            marginDisabled={true}
+            messages={[
+              {
+                id: 'preview-message-1',
+                userId: 'old-preview-user',
+                timestamp: new Date(),
+                content: `This is how your earlier messages will look with your previous name and picture.`,
+                type: 'text',
+                userProfilePic: previousAvatar,
+                userFullName: previousName,
+                delivered: 'delivered',
+              },
+              {
+                id: 'preview-message-2',
+                userId: 'new-preview-user',
+                timestamp: new Date(),
+                content: `And this is how your messages will look now, with your updated identity.`,
+                type: 'text',
+                userProfilePic: displayAvatar,
+                userFullName: displayName,
+                delivered: 'delivered',
+              },
+            ]}
+          />
         )}
 
         <SaveButton onClick={handleSave} disabled={isSaving}>
@@ -357,9 +341,11 @@ const EditProfile = ({
           <>
             <AuthSection>
               <AuthText>
-                Want to save your profile and use it everywhere?
+                Since you're not signed in, this name and avatar only stay on
+                this device. If you switch devices, reset your browser, or
+                change your info, your earlier messages may no longer appear as
+                'you'. Sign in to keep your identity consistent everywhere.
               </AuthText>
-              <AuthButton onClick={() => {}}>Sign Up or Log In</AuthButton>
             </AuthSection>
           </>
         )}
