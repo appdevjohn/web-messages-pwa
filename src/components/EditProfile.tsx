@@ -59,6 +59,30 @@ const Container = styled.div`
   }
 `
 
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+`
+
+const Title = styled.div`
+  font-size: 1rem;
+  font-weight: 700;
+`
+
+const Pill = styled.div`
+  background-color: var(--content-background);
+  color: gray;
+  font-size: 0.7rem;
+  border-radius: 12px;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+`
+
 const InputTitle = styled.div`
   font-size: 0.8rem;
   padding-left: 18px;
@@ -177,15 +201,45 @@ const UserInfoValue = styled.div`
   }
 `
 
-const AuthSection = styled.div`
+const DisclaimerSection = styled.div`
   margin-top: 24px;
-  text-align: center;
 `
 
-const AuthText = styled.div`
+const DisclaimerText = styled.div`
   font-size: 0.85rem;
   color: gray;
   margin-bottom: 12px;
+`
+
+const ToggleButton = styled.button`
+  appearance: none;
+  border: none;
+  background: none;
+  color: gray;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 0;
+  text-align: left;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    color: var(--accent-color);
+  }
+`
+
+const Caret = styled.span<{ $isOpen: boolean }>`
+  display: inline-block;
+  transition: transform 0.2s ease;
+  transform: ${(props) => (props.$isOpen ? 'rotate(90deg)' : 'rotate(0deg)')};
+`
+
+const ItalicText = styled.span`
+  font-style: italic;
+  font-weight: 400;
 `
 
 const EditProfile = ({
@@ -207,6 +261,7 @@ const EditProfile = ({
   const [error, setError] = useState<string | null>(null)
   const [previousName] = useState(user?.name || '')
   const [previousAvatar] = useState(user?.avatar || '')
+  const [showDisclaimer, setShowDisclaimer] = useState(false)
 
   useEffect(() => {
     setName(authUser?.displayName || user?.name || '')
@@ -249,6 +304,11 @@ const EditProfile = ({
   return (
     <Backdrop onClick={onDismiss}>
       <Container onClick={(e) => e.stopPropagation()}>
+        <Header>
+          <Title>Edit profile</Title>
+          {!authUser && <Pill>Local to this browser</Pill>}
+        </Header>
+
         {authUser && (
           <UserInfoSection>
             <div>
@@ -290,54 +350,63 @@ const EditProfile = ({
           </AvatarGrid>
         </div>
 
-        {!authUser && hasChangedProfile && previousName && previousAvatar && (
-          <MessageView
-            highlightId='new-preview-user'
-            showLoadOlderMessagesButton={false}
-            isLoadingOlderMessages={false}
-            onLoadOlderMessages={() => {}}
-            margin='0 auto'
-            messages={[
-              {
-                id: 'preview-message-1',
-                userId: 'old-preview-user',
-                timestamp: new Date(),
-                content: `This is how your earlier messages will look with your previous name and picture.`,
-                type: 'text',
-                userProfilePic: previousAvatar,
-                userFullName: previousName,
-                delivered: 'delivered',
-              },
-              {
-                id: 'preview-message-2',
-                userId: 'new-preview-user',
-                timestamp: new Date(),
-                content: `And this is how your messages will look now, with your updated identity.`,
-                type: 'text',
-                userProfilePic: displayAvatar,
-                userFullName: displayName,
-                delivered: 'delivered',
-              },
-            ]}
-          />
-        )}
-
         <SaveButton onClick={handleSave} disabled={isSaving}>
           {isSaving ? 'Saving…' : 'Save'}
         </SaveButton>
         {error && <ErrorText>{error}</ErrorText>}
 
         {!authUser && (
-          <>
-            <AuthSection>
-              <AuthText>
-                Since you're not signed in, this name and avatar only stay on
-                this device. If you switch devices, reset your browser, or
-                change your info, your earlier messages may no longer appear as
-                'you'. Sign in to keep your identity consistent everywhere.
-              </AuthText>
-            </AuthSection>
-          </>
+          <DisclaimerSection>
+            <ToggleButton onClick={() => setShowDisclaimer(!showDisclaimer)}>
+              <Caret $isOpen={showDisclaimer}>▶</Caret>
+              About Anonymous Identity
+              <ItalicText>{hasChangedProfile ? '(updated)' : ''}</ItalicText>
+            </ToggleButton>
+            {showDisclaimer && (
+              <>
+                <DisclaimerText>
+                  You're using an Anonymous Identity. If you switch devices,
+                  reset your browser, or change your info, your earlier messages
+                  won't appear as "you." Also, if someone else in the chat
+                  chooses the same name and picture, their messages may look
+                  like yours on your device. Signing in will switch to your
+                  Account Identity and keep your profile consistent and unique
+                  going forward.
+                </DisclaimerText>
+                {hasChangedProfile && previousName && previousAvatar && (
+                  <MessageView
+                    highlightId='new-preview-user'
+                    showLoadOlderMessagesButton={false}
+                    isLoadingOlderMessages={false}
+                    onLoadOlderMessages={() => {}}
+                    margin='24px auto 0 auto'
+                    messages={[
+                      {
+                        id: 'preview-message-1',
+                        userId: 'old-preview-user',
+                        timestamp: new Date(),
+                        content: `This is how your earlier messages will look with your previous name and picture.`,
+                        type: 'text',
+                        userProfilePic: previousAvatar,
+                        userFullName: previousName,
+                        delivered: 'delivered',
+                      },
+                      {
+                        id: 'preview-message-2',
+                        userId: 'new-preview-user',
+                        timestamp: new Date(),
+                        content: `And this is how your messages will look now, with your updated identity.`,
+                        type: 'text',
+                        userProfilePic: displayAvatar,
+                        userFullName: displayName,
+                        delivered: 'delivered',
+                      },
+                    ]}
+                  />
+                )}
+              </>
+            )}
+          </DisclaimerSection>
         )}
       </Container>
     </Backdrop>
