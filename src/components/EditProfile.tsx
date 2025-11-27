@@ -110,7 +110,6 @@ const Input = styled.input`
   margin-top: 8px;
   font-size: 1rem;
   text-align: left;
-  cursor: pointer;
   width: calc(100% - 32px);
 
   &:focus {
@@ -161,8 +160,38 @@ const AvatarOption = styled.button<{ $selected?: boolean }>`
   }
 `
 
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+`
+
+const CancelButton = styled.button`
+  flex: 1;
+  height: 40px;
+  cursor: pointer;
+  background-color: transparent;
+  color: var(--accent-color);
+  border-radius: 8px;
+  appearance: none;
+  drop-shadow: none;
+  border: 2px solid var(--accent-color);
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+`
+
 const SaveButton = styled.button`
-  width: 100%;
+  flex: 1;
   height: 40px;
   cursor: pointer;
   background-color: var(--accent-color);
@@ -171,7 +200,6 @@ const SaveButton = styled.button`
   appearance: none;
   drop-shadow: none;
   border: none;
-  margin-top: 8px;
   font-size: 0.85rem;
   font-weight: 700;
 
@@ -283,8 +311,10 @@ const EditProfile = ({
     onChangeUser({ name, avatar })
   }
 
-  const hasChangedProfile =
-    !authUser && (name !== previousName || avatar !== previousAvatar)
+  const hasChangedProfile = authUser
+    ? name !== (authUser.displayName || '') ||
+      avatar !== (authUser.profilePicURL || '')
+    : name !== previousName || avatar !== previousAvatar
   const displayAvatar = avatar || 'default'
   const displayName = name || 'Anonymous'
 
@@ -322,9 +352,15 @@ const EditProfile = ({
           </AvatarGrid>
         </FormSection>
 
-        <SaveButton onClick={handleSave} disabled={isSaving}>
-          {isSaving ? 'Saving…' : 'Save'}
-        </SaveButton>
+        <ButtonContainer>
+          <CancelButton onClick={onDismiss}>Cancel</CancelButton>
+          <SaveButton
+            onClick={handleSave}
+            disabled={!hasChangedProfile || isSaving}
+          >
+            {isSaving ? 'Saving…' : 'Save'}
+          </SaveButton>
+        </ButtonContainer>
         {error && <ErrorText>{error}</ErrorText>}
 
         {authUser && (
