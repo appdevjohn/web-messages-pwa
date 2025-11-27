@@ -45,10 +45,10 @@ const Backdrop = styled.div`
 `
 
 const Container = styled.div`
-  padding: 15px 10px 10px 10px;
+  padding: 12px;
   margin: 16px 0;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  border-radius: 30px;
+  border-radius: 12px;
   width: 320px;
   background-color: white;
   animation: ${moveUp} 0.2s ease-out;
@@ -67,7 +67,7 @@ const Header = styled.div`
 `
 
 const Title = styled.div`
-  font-size: 1rem;
+  font-size: 1.5rem;
   font-weight: 700;
 `
 
@@ -83,20 +83,31 @@ const Pill = styled.div`
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 `
 
-const InputTitle = styled.div`
+const FormSection = styled.div`
+  margin-bottom: 1rem;
+  width: 100%;
+`
+
+const FormTitle = styled.div`
   font-size: 0.8rem;
-  padding-left: 18px;
+  padding-left: 0;
   padding-bottom: 4px;
+`
+
+const FormInfo = styled.div`
+  font-size: 0.9rem;
+  font-weight: 500;
 `
 
 const Input = styled.input`
   appearance: none;
   border: none;
   height: 36px;
-  border-radius: 18px;
+  border-radius: 8px;
   background-color: var(--content-background);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  padding: 0 16px;
+  padding: 0 8px;
+  margin-top: 8px;
   font-size: 1rem;
   text-align: left;
   cursor: pointer;
@@ -156,7 +167,7 @@ const SaveButton = styled.button`
   cursor: pointer;
   background-color: var(--accent-color);
   color: white;
-  border-radius: 20px;
+  border-radius: 8px;
   appearance: none;
   drop-shadow: none;
   border: none;
@@ -177,32 +188,8 @@ const ErrorText = styled.div`
   text-align: center;
 `
 
-const UserInfoSection = styled.div`
-  background-color: var(--content-background);
-  border-radius: 18px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-`
-
-const UserInfoLabel = styled.div`
-  font-size: 0.7rem;
-  color: gray;
-  margin-bottom: 4px;
-`
-
-const UserInfoValue = styled.div`
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-bottom: 12px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-`
-
 const DisclaimerSection = styled.div`
-  margin-top: 24px;
+  margin-top: 12px;
 `
 
 const DisclaimerText = styled.div`
@@ -306,26 +293,11 @@ const EditProfile = ({
       <Container onClick={(e) => e.stopPropagation()}>
         <Header>
           <Title>Edit profile</Title>
-          {!authUser && <Pill>Local to this browser</Pill>}
+          <Pill>{authUser ? 'Account Identity' : 'Anonymous Identity'}</Pill>
         </Header>
 
-        {authUser && (
-          <UserInfoSection>
-            <div>
-              <UserInfoLabel>Username</UserInfoLabel>
-              <UserInfoValue>@{authUser.username}</UserInfoValue>
-            </div>
-            {authUser.email && (
-              <div>
-                <UserInfoLabel>Email</UserInfoLabel>
-                <UserInfoValue>{authUser.email}</UserInfoValue>
-              </div>
-            )}
-          </UserInfoSection>
-        )}
-
-        <div style={{ marginBottom: '1rem', width: '100%' }}>
-          <InputTitle>Screen Name</InputTitle>
+        <FormSection>
+          <FormTitle>Display Name</FormTitle>
           <Input
             name='username'
             type='text'
@@ -333,9 +305,9 @@ const EditProfile = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-        </div>
-        <div>
-          <InputTitle>Avatar</InputTitle>
+        </FormSection>
+        <FormSection>
+          <FormTitle>Avatar</FormTitle>
           <AvatarGrid>
             {Object.keys(ICON_MAP).map((a) => (
               <AvatarContainer key={a}>
@@ -348,13 +320,35 @@ const EditProfile = ({
               </AvatarContainer>
             ))}
           </AvatarGrid>
-        </div>
+        </FormSection>
 
         <SaveButton onClick={handleSave} disabled={isSaving}>
           {isSaving ? 'Saving…' : 'Save'}
         </SaveButton>
         {error && <ErrorText>{error}</ErrorText>}
 
+        {authUser && (
+          <DisclaimerSection>
+            <ToggleButton onClick={() => setShowDisclaimer(!showDisclaimer)}>
+              <Caret $isOpen={showDisclaimer}>▶</Caret>
+              Show Account Information
+            </ToggleButton>
+            {showDisclaimer && (
+              <DisclaimerText>
+                <FormSection>
+                  <FormTitle>Username</FormTitle>
+                  <FormInfo>@{authUser.username}</FormInfo>
+                </FormSection>
+                {authUser.email && (
+                  <FormSection>
+                    <FormTitle>Email</FormTitle>
+                    <FormInfo>{authUser.email}</FormInfo>
+                  </FormSection>
+                )}
+              </DisclaimerText>
+            )}
+          </DisclaimerSection>
+        )}
         {!authUser && (
           <DisclaimerSection>
             <ToggleButton onClick={() => setShowDisclaimer(!showDisclaimer)}>
