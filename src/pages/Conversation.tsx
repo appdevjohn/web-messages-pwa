@@ -11,6 +11,7 @@ import MessageView from '../components/MessageView'
 import NavBar from '../components/NavBar'
 import ComposeBox from '../components/ComposeBox'
 import EditProfile from '../components/EditProfile'
+import SetupProfileButton from '../components/SetupProfileButton'
 import type { RootState } from '../store/store'
 
 const ErrorViewContainer = styled.div`
@@ -95,14 +96,10 @@ export default function ConversationView() {
   const [convoName, setConvoName] = useState('')
   const [deletionDate, setDeletionDate] = useState<Date>()
   const [messages, setMessages] = useState<MessageType[]>([])
+  const [doesChatExist, setDoesChatExist] = useState<boolean>()
   const daysRemaining = deletionDate
     ? getDaysRemaining(new Date(), deletionDate)
     : undefined
-
-  const [doesChatExist, setDoesChatExist] = useState<boolean>()
-  const shouldShowEditProfile =
-    (!authUser && (user.name.length === 0 || shouldEditUser)) ||
-    (!!authUser && shouldEditUser)
 
   // Handle WebSocket events.
   useEffect(() => {
@@ -260,7 +257,7 @@ export default function ConversationView() {
 
   return (
     <>
-      {shouldShowEditProfile && (
+      {shouldEditUser && (
         <EditProfile
           user={user}
           onChangeUser={({ name, avatar }) => {
@@ -305,12 +302,16 @@ export default function ConversationView() {
             messages={messages}
           />
         )}
-        <ComposeBox
-          becameActive={() => {}}
-          disableUpload={true}
-          onUploadFile={() => {}}
-          sendMessage={sendMessageHandler}
-        />
+        {!authUser && user.name.length === 0 ? (
+          <SetupProfileButton onClick={() => setShouldEditUser(true)} />
+        ) : (
+          <ComposeBox
+            becameActive={() => {}}
+            disableUpload={true}
+            onUploadFile={() => {}}
+            sendMessage={sendMessageHandler}
+          />
+        )}
       </div>
     </>
   )
