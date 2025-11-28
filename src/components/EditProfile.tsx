@@ -315,14 +315,13 @@ const EditProfile = ({
     ? name !== (authUser.displayName || '') ||
       avatar !== (authUser.profilePicURL || '')
     : name !== previousName || avatar !== previousAvatar
-  const displayAvatar = avatar || 'default'
-  const displayName = name || 'Anonymous'
+  const isFirstTimeUser = !authUser && previousName.length === 0
 
   return (
     <Backdrop onClick={onDismiss}>
       <Container onClick={(e) => e.stopPropagation()}>
         <Header>
-          <Title>Edit profile</Title>
+          <Title>{isFirstTimeUser ? 'Set Your Name' : 'Edit profile'}</Title>
           <Pill>{authUser ? 'Account Identity' : 'Anonymous Identity'}</Pill>
         </Header>
 
@@ -356,9 +355,13 @@ const EditProfile = ({
           <CancelButton onClick={onDismiss}>Cancel</CancelButton>
           <SaveButton
             onClick={handleSave}
-            disabled={!hasChangedProfile || isSaving}
+            disabled={
+              isFirstTimeUser
+                ? !name || !avatar || isSaving
+                : !hasChangedProfile || isSaving
+            }
           >
-            {isSaving ? 'Saving…' : 'Save'}
+            {isSaving ? 'Saving…' : isFirstTimeUser ? 'Join Chat' : 'Save'}
           </SaveButton>
         </ButtonContainer>
         {error && <ErrorText>{error}</ErrorText>}
@@ -390,7 +393,11 @@ const EditProfile = ({
             <ToggleButton onClick={() => setShowDisclaimer(!showDisclaimer)}>
               <Caret $isOpen={showDisclaimer}>▶</Caret>
               About Anonymous Identity
-              <ItalicText>{hasChangedProfile ? '(updated)' : ''}</ItalicText>
+              <ItalicText>
+                {hasChangedProfile && previousName && previousAvatar
+                  ? '(updated)'
+                  : ''}
+              </ItalicText>
             </ToggleButton>
             {showDisclaimer && (
               <>
@@ -403,37 +410,41 @@ const EditProfile = ({
                   Account Identity and keep your profile consistent and unique
                   going forward.
                 </DisclaimerText>
-                {hasChangedProfile && previousName && previousAvatar && (
-                  <MessageView
-                    highlightId='new-preview-user'
-                    showLoadOlderMessagesButton={false}
-                    isLoadingOlderMessages={false}
-                    onLoadOlderMessages={() => {}}
-                    margin='24px auto 0 auto'
-                    messages={[
-                      {
-                        id: 'preview-message-1',
-                        userId: 'old-preview-user',
-                        timestamp: new Date(),
-                        content: `This is how your earlier messages will look with your previous name and picture.`,
-                        type: 'text',
-                        userProfilePic: previousAvatar,
-                        userFullName: previousName,
-                        delivered: 'delivered',
-                      },
-                      {
-                        id: 'preview-message-2',
-                        userId: 'new-preview-user',
-                        timestamp: new Date(),
-                        content: `And this is how your messages will look now, with your updated identity.`,
-                        type: 'text',
-                        userProfilePic: displayAvatar,
-                        userFullName: displayName,
-                        delivered: 'delivered',
-                      },
-                    ]}
-                  />
-                )}
+                {hasChangedProfile &&
+                  previousName &&
+                  previousAvatar &&
+                  name &&
+                  avatar && (
+                    <MessageView
+                      highlightId='new-preview-user'
+                      showLoadOlderMessagesButton={false}
+                      isLoadingOlderMessages={false}
+                      onLoadOlderMessages={() => {}}
+                      margin='24px auto 0 auto'
+                      messages={[
+                        {
+                          id: 'preview-message-1',
+                          userId: 'old-preview-user',
+                          timestamp: new Date(),
+                          content: `This is how your earlier messages will look with your previous name and picture.`,
+                          type: 'text',
+                          userProfilePic: previousAvatar,
+                          userFullName: previousName,
+                          delivered: 'delivered',
+                        },
+                        {
+                          id: 'preview-message-2',
+                          userId: 'new-preview-user',
+                          timestamp: new Date(),
+                          content: `And this is how your messages will look now, with your updated identity.`,
+                          type: 'text',
+                          userProfilePic: avatar,
+                          userFullName: name,
+                          delivered: 'delivered',
+                        },
+                      ]}
+                    />
+                  )}
               </>
             )}
           </DisclaimerSection>
