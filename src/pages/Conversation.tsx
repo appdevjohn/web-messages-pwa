@@ -285,6 +285,9 @@ export default function ConversationView() {
           }
           onUserClick={() => setShouldEditUser(true)}
           disableEditProfile={!doesChatExist}
+          userName={authUser?.displayName || user.name}
+          userAvatar={authUser?.profilePicURL || user.avatar}
+          isAnonymous={!authUser}
         />
         {doesChatExist === false ? (
           <ErrorView

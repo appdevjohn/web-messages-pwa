@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import IconButton from './IconButton'
-import EditProfileSVG from '../assets/edit-account.svg?react'
 import CloseSVG from '../assets/close.svg?react'
+import ICON_MAP from '../util/profileIcons'
 
 const Container = styled.div`
   position: fixed;
@@ -52,16 +52,6 @@ const Subtitle = styled.div`
   color: gray;
 `
 
-const EditProfileIcon = styled(EditProfileSVG)`
-  path {
-    fill: var(--accent-color);
-
-    @media (prefers-color-scheme: dark) {
-      fill: white;
-    }
-  }
-`
-
 const CloseIcon = styled(CloseSVG)`
   path {
     fill: var(--accent-color);
@@ -72,11 +62,87 @@ const CloseIcon = styled(CloseSVG)`
   }
 `
 
+const ProfileChip = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 18px;
+  background-color: var(--content-background);
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+  }
+
+  &:hover span {
+    color: white;
+  }
+
+  &:hover path {
+    fill: white;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:hover {
+      background-color: var(--accent-color);
+    }
+  }
+`
+
+const ProfileAvatar = styled.img`
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  background-color: transparent;
+`
+
+const ProfileName = styled.span`
+  font-size: 0.85rem;
+  font-weight: 500;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @media (max-width: 400px) {
+    max-width: 60px;
+  }
+`
+
+const ChevronIcon = styled.span`
+  font-size: 0.7rem;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+`
+
+const IdentityBadge = styled.span`
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background-color: rgba(0, 123, 255, 0.2);
+  color: #0066cc;
+  font-weight: 600;
+  white-space: nowrap;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: rgba(100, 150, 255, 0.2);
+    color: #6ca3ff;
+  }
+`
+
 type NavBar = {
   title: string
   subtitle?: string
   onUserClick: () => void
   disableEditProfile: boolean
+  userName?: string
+  userAvatar?: string
+  isAnonymous?: boolean
 }
 
 const NavBar = ({
@@ -84,8 +150,12 @@ const NavBar = ({
   subtitle,
   onUserClick,
   disableEditProfile = false,
+  userName,
+  userAvatar,
+  isAnonymous = false,
 }: NavBar) => {
   const navigate = useNavigate()
+  const avatarSrc = userAvatar ? ICON_MAP[userAvatar] : undefined
 
   return (
     <Container>
@@ -94,19 +164,25 @@ const NavBar = ({
           <Title>{title}</Title>
           {subtitle && <Subtitle>{subtitle}</Subtitle>}
         </TitleStack>
-        <div>
-          {!disableEditProfile && (
-            <IconButton
-              icon={<EditProfileIcon />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {!disableEditProfile && userName && avatarSrc && (
+            <ProfileChip
               onClick={onUserClick}
-              style={{ marginLeft: '8px' }}
-              hasBorders={false}
-            />
+              title={
+                isAnonymous
+                  ? 'Anonymous Identity - Click to edit'
+                  : 'Account Identity - Click to edit'
+              }
+            >
+              <ProfileAvatar src={avatarSrc} alt={userName} />
+              <ProfileName>{userName}</ProfileName>
+              {!isAnonymous && <IdentityBadge>✓</IdentityBadge>}
+              <ChevronIcon>›</ChevronIcon>
+            </ProfileChip>
           )}
           <IconButton
             icon={<CloseIcon />}
             onClick={() => navigate('/')}
-            style={{ marginLeft: '8px' }}
             hasBorders={false}
           />
         </div>
