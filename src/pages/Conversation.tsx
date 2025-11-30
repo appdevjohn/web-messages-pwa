@@ -11,6 +11,7 @@ import MessageView from '../components/MessageView'
 import NavBar from '../components/NavBar'
 import ComposeBox from '../components/ComposeBox'
 import EditProfile from '../components/EditProfile'
+import SetupProfileButton from '../components/SetupProfileButton'
 import type { RootState } from '../store/store'
 
 const ErrorViewContainer = styled.div`
@@ -95,11 +96,10 @@ export default function ConversationView() {
   const [convoName, setConvoName] = useState('')
   const [deletionDate, setDeletionDate] = useState<Date>()
   const [messages, setMessages] = useState<MessageType[]>([])
+  const [doesChatExist, setDoesChatExist] = useState<boolean>()
   const daysRemaining = deletionDate
     ? getDaysRemaining(new Date(), deletionDate)
     : undefined
-
-  const [doesChatExist, setDoesChatExist] = useState<boolean>()
 
   // Handle WebSocket events.
   useEffect(() => {
@@ -154,6 +154,25 @@ export default function ConversationView() {
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight)
   }, [messages])
+
+  // Update messages when logged-in user's profile changes
+  useEffect(() => {
+    if (!authUser) return
+
+    setMessages((prevMessages) => {
+      return prevMessages.map((msg) => {
+        // Only update messages from the logged-in user
+        if (msg.userId === authUser.id) {
+          return {
+            ...msg,
+            userProfilePic: authUser.profilePicURL,
+            userFullName: authUser.displayName,
+          }
+        }
+        return msg
+      })
+    })
+  }, [authUser?.profilePicURL, authUser?.displayName])
 
   // Join conversation and fetch messages when connected.
   useEffect(() => {
@@ -212,14 +231,17 @@ export default function ConversationView() {
   const sendMessageHandler = (messageContent: string) => {
     if (!messageContent || !convoId) return
 
+    const senderName = authUser?.displayName || user.name
+    const senderAvatar = authUser?.profilePicURL || user.avatar
+
     // Send message to server - it will be added to UI via 'message-created' broadcast
     socket.emit(
       'create-message',
       {
         convoId: convoId,
         content: messageContent,
-        userName: user.name,
-        userAvatar: user.avatar,
+        userName: senderName,
+        userAvatar: senderAvatar,
         token: accessToken, // Server should automatically use logged-in user if token is provided
       },
       (response: any) => {
@@ -235,7 +257,7 @@ export default function ConversationView() {
 
   return (
     <>
-      {!authUser && (user.name.length === 0 || shouldEditUser) && (
+      {shouldEditUser && (
         <EditProfile
           user={user}
           onChangeUser={({ name, avatar }) => {
@@ -263,6 +285,9 @@ export default function ConversationView() {
           }
           onUserClick={() => setShouldEditUser(true)}
           disableEditProfile={!doesChatExist}
+          userName={authUser?.displayName || user.name}
+          userAvatar={authUser?.profilePicURL || user.avatar}
+          isAnonymous={!authUser}
         />
         {doesChatExist === false ? (
           <ErrorView
@@ -280,12 +305,16 @@ export default function ConversationView() {
             messages={messages}
           />
         )}
-        <ComposeBox
-          becameActive={() => {}}
-          disableUpload={true}
-          onUploadFile={() => {}}
-          sendMessage={sendMessageHandler}
-        />
+        {!authUser && user.name.length === 0 ? (
+          <SetupProfileButton onClick={() => setShouldEditUser(true)} />
+        ) : (
+          <ComposeBox
+            becameActive={() => {}}
+            disableUpload={true}
+            onUploadFile={() => {}}
+            sendMessage={sendMessageHandler}
+          />
+        )}
       </div>
     </>
   )

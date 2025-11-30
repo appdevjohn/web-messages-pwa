@@ -178,6 +178,17 @@ export const authSlice = createSlice({
       state.error = null
       saveRefreshToken(action.payload.refreshToken)
     },
+    updateUserProfile: (
+      state,
+      action: PayloadAction<{ displayName: string; profilePicURL: string }>
+    ) => {
+      if (!state.user) {
+        return
+      }
+
+      state.user.displayName = action.payload.displayName
+      state.user.profilePicURL = action.payload.profilePicURL
+    },
     clearTokens: (state) => {
       state.accessToken = null
       state.refreshToken = null
@@ -310,5 +321,5 @@ export const authSlice = createSlice({
   },
 })
 
-export const { setTokens, clearTokens } = authSlice.actions
+export const { setTokens, clearTokens, updateUserProfile } = authSlice.actions
 export default authSlice.reducer
