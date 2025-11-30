@@ -8,160 +8,386 @@ import styled from 'styled-components'
 import socket from '../util/socket'
 import getDaysRemaining from '../util/daysRemaining'
 import { StoredConversationType } from '../types'
-import { ComposeInput } from '../components/ComposeBox'
-import IconButton from '../components/IconButton'
 import { logOut } from '../store/slices/auth'
 import type { RootState, AppDispatch } from '../store/store'
 
-import CreationSVG from '../assets/creation.svg?react'
-
-const Header = styled.div`
-  background-color: var(--accent-color);
-  padding: 16px 8px 16px 8px;
-  box-shadow: 0px 2px 2px #cccccc;
-  background-color: white;
-
-  @media (prefers-color-scheme: dark) {
-    background-color: rgb(30, 30, 30);
-    box-shadow: 0px 2px 2px black;
-  }
+const PageContainer = styled.div`
+  min-height: 100vh;
+  padding: 2rem 1rem 3rem;
 
   @media (min-width: 40rem) {
-    padding: 24px 8px 16px 8px;
+    padding: 3rem 1rem 4rem;
   }
 `
 
 const Content = styled.div`
-  margin: 0;
-  padding: 8px;
+  margin: 0 auto;
+  max-width: 42rem;
 `
 
-const HeaderRow = styled.div`
+const PageHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 40rem;
-  margin: 0 auto;
+  margin-bottom: 2.5rem;
   gap: 1rem;
+
+  @media (min-width: 40rem) {
+    margin-bottom: 3rem;
+  }
 `
 
-const Brand = styled.div`
-  font-size: 2rem;
+const Brand = styled.h1`
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  @media (min-width: 40rem) {
+    font-size: 2.25rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #a39dc9 0%, #78729f 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+`
+
+const Card = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+
+  @media (min-width: 40rem) {
+    padding: 2rem;
+    border-radius: 20px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: #2a2a2a;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+`
+
+const CardTitle = styled.h2`
+  font-size: 1.25rem;
   font-weight: 700;
+  margin: 0 0 1.25rem 0;
+  color: #222;
+
+  @media (min-width: 40rem) {
+    font-size: 1.5rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    color: #e5e5e5;
+  }
 `
 
-const Subtitle = styled.div`
-  text-align: left;
-  font-size: 1.3rem;
-  font-weight: 700;
-  margin: 1rem auto 0.5rem auto;
-  max-width: 40rem;
+const InputRow = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
 `
 
-const InputContainer = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 44px;
-  grid-template-rows: 44px;
-  column-gap: 8px;
-  margin: 0 auto 2rem auto;
-  max-width: 40rem;
+const InputWrapper = styled.div`
+  position: relative;
+  flex: 1;
 `
 
-const CreateInput = styled(ComposeInput)`
-  width: calc(100% - 32px);
+const TextInput = styled.input`
+  appearance: none;
+  width: 100%;
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  background-color: #f5f5f5;
+  transition: all 0.2s ease;
+
+  &::placeholder {
+    color: #999;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(64, 61, 88, 0.1);
+  }
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-`
-
-const ListCell = styled.div`
-  box-sizing: border-box;
-  margin: 8px auto;
-  padding: 12px;
-  background-color: var(--content-background);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  border-radius: 12px;
-  max-width: 40rem;
 
   @media (prefers-color-scheme: dark) {
-    background-color: #333333;
-  }
-`
-
-const ListCellTitle = styled.span`
-  font-size: 1rem;
-  font-weight: 400;
-  color: black;
-
-  @media (prefers-color-scheme: dark) {
+    background-color: #2a2a2a;
     color: white;
+    border-color: transparent;
+
+    &::placeholder {
+      color: #666;
+    }
+
+    &:focus {
+      background-color: #333;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 4px rgba(120, 114, 159, 0.15);
+    }
   }
 `
 
-const ListCellSubtitle = styled.span`
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: gray;
-  float: right;
-`
-
-const ListFooter = styled.div`
-  text-align: center;
-  font-size: 0.8rem;
-  margin: 2rem auto 0 auto;
-  line-height: 1rem;
-  padding: 0 2rem;
-  max-width: 40rem;
-`
-
-const CreationIcon = styled(CreationSVG)`
-  path {
-    fill: white;
-  }
-`
-
-const LogoutButton = styled.button`
+const CreateButton = styled.button`
   appearance: none;
   border: none;
-  border-radius: 999px;
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  border-radius: 12px;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
   font-weight: 700;
-  background-color: var(--accent-color);
+  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
   color: white;
   cursor: pointer;
-  transition: transform 0.1s ease;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+
+  @media (min-width: 40rem) {
+    padding: 0.85rem 2rem;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2) 0%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
 
   &:hover:not(:disabled) {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(64, 61, 88, 0.3);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 8px 20px rgba(120, 114, 159, 0.3);
+    }
+  }
+`
+
+const ConversationsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`
+
+const ListCell = styled.div`
+  box-sizing: border-box;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-radius: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  &:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 8px 24px rgba(64, 61, 88, 0.15),
+      0 2px 8px rgba(64, 61, 88, 0.08);
+    transform: translateX(4px);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: translateX(2px) scale(0.99);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #2d2d2d 0%, #262626 100%);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2);
+
+    &:hover {
+      border-color: var(--accent-color);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5),
+        0 2px 8px rgba(120, 114, 159, 0.2);
+    }
+  }
+`
+
+const ConversationInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+`
+
+const ListCellTitle = styled.span`
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @media (prefers-color-scheme: dark) {
+    color: #f0f0f0;
+  }
+`
+
+const ExpiryBadge = styled.div`
+  padding: 0.4rem 0.75rem;
+  background: rgba(64, 61, 88, 0.08);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  @media (prefers-color-scheme: dark) {
+    background: rgba(120, 114, 159, 0.15);
+    color: #a39dc9;
+  }
+`
+
+const ListFooter = styled.div`
+  text-align: center;
+  font-size: 0.875rem;
+  margin: 2.5rem auto 0 auto;
+  line-height: 1.5;
+  color: #666;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
+`
+
+const LogoutButton = styled.button`
+  appearance: none;
+  border: none;
+  border-radius: 12px;
+  padding: 0.625rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(64, 61, 88, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 12px rgba(120, 114, 159, 0.3);
+    }
+  }
 `
 
 const ErrorText = styled.div`
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: #c72c41;
   font-weight: 500;
+  padding: 0.75rem 1rem;
+  background-color: rgba(199, 44, 65, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #c72c41;
+  margin-bottom: 1rem;
 `
 
 const HelperText = styled.div`
   font-size: 0.95rem;
-  margin: 1.5rem auto 0;
+  margin: 2rem auto 0;
   text-align: center;
-  max-width: 32rem;
+  color: #666;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
 `
 
 const LoadingText = styled.div`
   font-size: 0.95rem;
   text-align: center;
-  margin: 1.5rem auto;
-  color: gray;
+  margin: 2rem auto;
+  color: #666;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
 `
 
 const PrevousChatCell = ({
@@ -176,10 +402,12 @@ const PrevousChatCell = ({
   return (
     <Link to={`/${convoId}`} style={{ textDecoration: 'none' }}>
       <ListCell>
-        <ListCellTitle>{name}</ListCellTitle>
-        <ListCellSubtitle>{`${daysRemaining} ${
-          daysRemaining === 1 ? 'day' : 'days'
-        } left`}</ListCellSubtitle>
+        <ConversationInfo>
+          <ListCellTitle>{name}</ListCellTitle>
+        </ConversationInfo>
+        <ExpiryBadge>
+          ⏱ {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}
+        </ExpiryBadge>
       </ListCell>
     </Link>
   )
@@ -363,27 +591,28 @@ export default function NewConversation() {
   }
 
   const inputContainer = (
-    <InputContainer>
-      <CreateInput
-        type='text'
-        placeholder='Conversation Name'
-        value={convoName}
-        disabled={!isLoggedIn || isCreatingConvo || authState.isLoading}
-        onChange={(e) => setConvoName(e.target.value)}
-        onKeyDownCapture={(event) => {
-          if (event.key === 'Enter') {
-            submitHandler()
-          }
-        }}
-      />
-      <IconButton
-        icon={<CreationIcon style={{ transform: 'translate(-1px, 2px)' }} />}
+    <InputRow>
+      <InputWrapper>
+        <TextInput
+          type='text'
+          placeholder='Enter a name for your conversation'
+          value={convoName}
+          disabled={!isLoggedIn || isCreatingConvo || authState.isLoading}
+          onChange={(e) => setConvoName(e.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              submitHandler()
+            }
+          }}
+        />
+      </InputWrapper>
+      <CreateButton
         onClick={submitHandler}
-        hasBorders={true}
-        backgroundColor='var(--accent-color)'
         disabled={!isLoggedIn || isCreatingConvo || authState.isLoading}
-      />
-    </InputContainer>
+      >
+        {isCreatingConvo ? 'Creating…' : 'Create'}
+      </CreateButton>
+    </InputRow>
   )
 
   const handleLogOut = () => {
@@ -392,40 +621,51 @@ export default function NewConversation() {
   }
 
   return (
-    <>
-      <Header>
-        <HeaderRow>
+    <PageContainer>
+      <Content>
+        <PageHeader>
           <Brand>OneTimeChat</Brand>
           <LogoutButton onClick={handleLogOut} disabled={authState.isLoading}>
             {authState.isLoading ? 'Logging out…' : 'Log Out'}
           </LogoutButton>
-        </HeaderRow>
-      </Header>
-      <Content>
-        <Subtitle>New Chat</Subtitle>
-        {inputContainer}
-        <Subtitle>Previous Chats</Subtitle>
-        {isFetchingConvos && <LoadingText>Loading conversations…</LoadingText>}
-        {convoError && <ErrorText>{convoError}</ErrorText>}
-        {previousConvos.map((c) => (
-          <PrevousChatCell
-            key={c.convoId}
-            convoId={c.convoId}
-            name={c.name}
-            daysRemaining={getDaysRemaining(new Date(), c.deletionDate)}
-          />
-        ))}
-        {!isFetchingConvos && !previousConvos.length && !convoError && (
-          <HelperText>
-            You have no saved conversations yet. Create a new chat above or ask
-            a teammate to send you an invite link.
-          </HelperText>
-        )}
+        </PageHeader>
+
+        <Card>
+          <CardTitle>New Conversation</CardTitle>
+          {inputContainer}
+          {convoError && <ErrorText>{convoError}</ErrorText>}
+        </Card>
+
+        <Card>
+          <CardTitle>Your Conversations</CardTitle>
+          {isFetchingConvos && (
+            <LoadingText>Loading conversations…</LoadingText>
+          )}
+          {!isFetchingConvos && !convoError && previousConvos.length > 0 && (
+            <ConversationsList>
+              {previousConvos.map((c) => (
+                <PrevousChatCell
+                  key={c.convoId}
+                  convoId={c.convoId}
+                  name={c.name}
+                  daysRemaining={getDaysRemaining(new Date(), c.deletionDate)}
+                />
+              ))}
+            </ConversationsList>
+          )}
+          {!isFetchingConvos && !previousConvos.length && !convoError && (
+            <HelperText>
+              You have no saved conversations yet. Create a new chat above or
+              ask a teammate to send you an invite link.
+            </HelperText>
+          )}
+        </Card>
+
         <ListFooter>
-          Conversations dissapear 30 days after the last message was sent.
+          Conversations disappear 30 days after the last message was sent.
           Anyone with a link can see and send messages.
         </ListFooter>
       </Content>
-    </>
+    </PageContainer>
   )
 }
