@@ -10,7 +10,6 @@ import getDaysRemaining from '../util/daysRemaining'
 import { StoredConversationType } from '../types'
 import { ComposeInput } from '../components/ComposeBox'
 import IconButton from '../components/IconButton'
-import LoginSignup from '../components/LoginSignup'
 import { logOut } from '../store/slices/auth'
 import type { RootState, AppDispatch } from '../store/store'
 
@@ -49,97 +48,6 @@ const HeaderRow = styled.div`
 const Brand = styled.div`
   font-size: 2rem;
   font-weight: 700;
-`
-
-const Title = styled.div`
-  text-align: left;
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin: 2rem auto 1.5rem auto;
-  max-width: 40rem;
-
-  @media (min-width: 40rem) {
-    font-size: 3rem;
-  }
-`
-
-const LandingContainer = styled.div`
-  box-sizing: border-box;
-  max-width: 40rem;
-  margin: 0 auto;
-
-  @media (max-width: 40rem) {
-    padding: 0 1rem;
-  }
-`
-
-const TwoColumnLayout = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 2rem;
-  margin-top: 3rem;
-
-  @media (max-width: 40rem) {
-    grid-template-columns: 1fr;
-    margin-top: 1.5rem;
-  }
-`
-
-const FeatureCell = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  height: 100%;
-
-  @media (max-width: 40rem) {
-    display: block;
-    height: auto;
-    margin-bottom: 2rem;
-  }
-`
-
-const AuthCell = styled.div`
-  flex: 1;
-  max-width: 32rem;
-
-  @media (max-width: 40rem) {
-    flex: 0 0 28rem;
-  }
-`
-
-const Tagline = styled.div`
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  color: #666;
-  font-weight: 400;
-
-  @media (prefers-color-scheme: dark) {
-    color: #aaa;
-  }
-`
-
-const FeatureList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-
-  & li {
-    font-size: 1rem;
-    font-weight: 400;
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
-    position: relative;
-
-    &:before {
-      content: '✓';
-      position: absolute;
-      left: 0;
-      color: var(--accent-color);
-      font-weight: 700;
-      font-size: 1.1rem;
-    }
-  }
 `
 
 const Subtitle = styled.div`
@@ -481,35 +389,6 @@ export default function NewConversation() {
   const handleLogOut = () => {
     dispatch(logOut())
     setConvoName('')
-  }
-
-  if (!isLoggedIn) {
-    return (
-      <Content>
-        <LandingContainer>
-          <Title>OneTimeChat</Title>
-          <Tagline>
-            Team messaging that doesn't require everyone to sign up or download
-            an app
-          </Tagline>
-          <TwoColumnLayout>
-            <FeatureCell>
-              <FeatureList>
-                <li>Create conversations and share them with a simple link</li>
-                <li>
-                  Anyone with the link can join instantly — no account needed
-                </li>
-                <li>Messages are accessible from any device, any browser</li>
-                <li>Conversations auto-expire 30 days after last activity</li>
-              </FeatureList>
-            </FeatureCell>
-            <AuthCell>
-              <LoginSignup />
-            </AuthCell>
-          </TwoColumnLayout>
-        </LandingContainer>
-      </Content>
-    )
   }
 
   return (
