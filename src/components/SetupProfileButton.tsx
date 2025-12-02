@@ -1,14 +1,12 @@
 import styled from 'styled-components'
+import { GlassmorphicContainer } from './shared/StyledComponents'
 
-const SetupProfileContainer = styled.div`
+const SetupProfileContainer = styled(GlassmorphicContainer)`
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   height: calc(76px + env(safe-area-inset-bottom));
-  background: color-mix(in srgb, var(--page-background) 70%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
 
   @media (min-width: 40rem) {
     height: 96px;

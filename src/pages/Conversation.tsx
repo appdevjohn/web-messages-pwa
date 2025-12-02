@@ -13,6 +13,14 @@ import ComposeBox from '../components/ComposeBox'
 import EditProfile from '../components/EditProfile'
 import SetupProfileButton from '../components/SetupProfileButton'
 import type { RootState } from '../store/store'
+import {
+  Card,
+  PrimaryButton,
+  SecondaryButton,
+  IconContainer,
+  LinkDisplayContainer,
+  gradientTextStyle,
+} from '../components/shared/StyledComponents'
 
 const ErrorViewContainer = styled.div`
   margin: 6rem auto 0 auto;
@@ -21,18 +29,8 @@ const ErrorViewContainer = styled.div`
   padding: 0 1rem;
 `
 
-const ErrorCard = styled.div`
-  background: white;
-  border-radius: 20px;
+const ErrorCard = styled(Card)`
   padding: 3rem 2rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-
-  @media (prefers-color-scheme: dark) {
-    background: #2a2a2a;
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  }
 `
 
 const ErrorIcon = styled.div`
@@ -45,17 +43,7 @@ const ErrorViewTitle = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-
-  @media (prefers-color-scheme: dark) {
-    background: linear-gradient(135deg, #a39dc9 0%, #78729f 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+  ${gradientTextStyle}
 `
 
 const ErrorViewMessage = styled.div`
@@ -80,39 +68,17 @@ const ShareChatContainer = styled.div`
   padding: 2rem 1rem;
 `
 
-const ShareChatCard = styled.div`
-  background: white;
-  border-radius: 20px;
-  padding: 2.5rem 2rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+const ShareChatCard = styled(Card)`
   max-width: 32rem;
   width: 100%;
   text-align: center;
-
-  @media (prefers-color-scheme: dark) {
-    background: #2a2a2a;
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  }
 `
 
-const ShareIcon = styled.div`
+const ShareIcon = styled(IconContainer)`
   width: 64px;
   height: 64px;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-size: 2rem;
-  box-shadow: 0 8px 24px rgba(64, 61, 88, 0.25);
-
-  @media (prefers-color-scheme: dark) {
-    background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
-    box-shadow: 0 8px 24px rgba(120, 114, 159, 0.3);
-  }
 `
 
 const ShareChatTitle = styled.h2`
@@ -137,22 +103,8 @@ const ShareChatLabel = styled.p`
   }
 `
 
-const LinkDisplayContainer = styled.div`
-  background: #f5f5f5;
-  border-radius: 12px;
-  padding: 1rem;
+const StyledLinkDisplay = styled(LinkDisplayContainer)`
   margin-bottom: 1.25rem;
-  word-break: break-all;
-  font-size: 0.9rem;
-  color: var(--accent-color);
-  font-family: monospace;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-
-  @media (prefers-color-scheme: dark) {
-    background: #1a1a1a;
-    color: #a39dc9;
-  }
 `
 
 const ButtonGroup = styled.div`
@@ -165,93 +117,12 @@ const ButtonGroup = styled.div`
   }
 `
 
-const PrimaryButton = styled.button`
-  appearance: none;
-  border: none;
-  border-radius: 12px;
-  padding: 0.875rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
+const StyledPrimaryButton = styled(PrimaryButton)`
   flex: 1;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.2) 0%,
-      transparent 100%
-    );
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(64, 61, 88, 0.3);
-
-    &::before {
-      opacity: 1;
-    }
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
-
-    &:hover {
-      box-shadow: 0 8px 20px rgba(120, 114, 159, 0.3);
-    }
-  }
 `
 
-const SecondaryButton = styled.button`
-  appearance: none;
-  border: 2px solid var(--accent-color);
-  border-radius: 12px;
-  padding: 0.875rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 700;
-  background: transparent;
-  color: var(--accent-color);
-  cursor: pointer;
-  transition: all 0.2s ease;
+const StyledSecondaryButton = styled(SecondaryButton)`
   flex: 1;
-
-  &:hover {
-    background: var(--accent-color);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(64, 61, 88, 0.2);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    border-color: #78729f;
-    color: #a39dc9;
-
-    &:hover {
-      background: #78729f;
-      color: white;
-      box-shadow: 0 4px 12px rgba(120, 114, 159, 0.2);
-    }
-  }
 `
 
 function ErrorView({ title, message }: { title: string; message: string }) {
@@ -300,13 +171,13 @@ function ShareChat() {
         <ShareChatLabel>
           Share this link with anyone you want to include in the chat.
         </ShareChatLabel>
-        <LinkDisplayContainer>{shareUrl}</LinkDisplayContainer>
+        <StyledLinkDisplay>{shareUrl}</StyledLinkDisplay>
         <ButtonGroup>
-          <PrimaryButton onClick={handleCopy}>
+          <StyledPrimaryButton onClick={handleCopy}>
             {copySuccess ? '✓ Copied!' : 'Copy Link'}
-          </PrimaryButton>
+          </StyledPrimaryButton>
           {canShare && (
-            <SecondaryButton onClick={handleShare}>Share</SecondaryButton>
+            <StyledSecondaryButton onClick={handleShare}>Share</StyledSecondaryButton>
           )}
         </ButtonGroup>
       </ShareChatCard>

@@ -5,6 +5,13 @@ import styled, { keyframes } from 'styled-components'
 
 import { logIn, signUp } from '../store/slices/auth'
 import type { RootState, AppDispatch } from '../store/store'
+import {
+  Card,
+  PrimaryButton,
+  TextInput,
+  ErrorText,
+  HelperText,
+} from './shared/StyledComponents'
 
 const slideUp = keyframes`
   from {
@@ -17,14 +24,12 @@ const slideUp = keyframes`
   }
 `
 
-const AuthCard = styled.div`
+const AuthCard = styled(Card)`
   box-sizing: border-box;
   margin: 0 auto;
   padding: 1.5rem 1.25rem;
   max-width: 28rem;
-  background: white;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
-  border-radius: 20px;
   overflow: hidden;
   animation: ${slideUp} 0.4s ease-out;
 
@@ -66,132 +71,28 @@ const InputLabel = styled.label`
   }
 `
 
-const TextInput = styled.input`
-  appearance: none;
-  width: 100%;
-  box-sizing: border-box;
-  border: 2px solid transparent;
-  border-radius: 12px;
-  padding: 0.85rem 1rem;
-  font-size: 1rem;
-  background-color: #f5f5f5;
-  transition: all 0.2s ease;
-
-  &::placeholder {
-    color: #999;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    background-color: white;
-    box-shadow: 0 0 0 4px rgba(64, 61, 88, 0.1);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    background-color: #2a2a2a;
-    color: white;
-    border-color: transparent;
-
-    &::placeholder {
-      color: #666;
-    }
-
-    &:focus {
-      background-color: #333;
-      border-color: var(--accent-color);
-      box-shadow: 0 0 0 4px rgba(120, 114, 159, 0.15);
-    }
-  }
-`
-
-const PrimaryButton = styled.button`
-  appearance: none;
-  border: none;
-  border-radius: 12px;
+const StyledPrimaryButton = styled(PrimaryButton)`
   padding: 0.875rem 1rem;
   margin-top: 0.25rem;
-  font-size: 1rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
 
   @media (min-width: 40rem) {
     padding: 1rem;
     margin-top: 0.5rem;
   }
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.2) 0%,
-      transparent 100%
-    );
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(64, 61, 88, 0.3);
-
-    &::before {
-      opacity: 1;
-    }
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
-
-    &:hover:not(:disabled) {
-      box-shadow: 0 8px 20px rgba(120, 114, 159, 0.3);
-    }
-  }
 `
 
-const ErrorText = styled.div`
+const StyledErrorText = styled(ErrorText)`
   font-size: 0.85rem;
-  color: #c72c41;
-  font-weight: 500;
   padding: 0.5rem 0.75rem;
-  background-color: rgba(199, 44, 65, 0.1);
-  border-radius: 8px;
-  border-left: 3px solid #c72c41;
 `
 
-const HelperText = styled.div`
-  font-size: 0.875rem;
+const StyledHelperText = styled(HelperText)`
   margin: 1rem auto 0;
-  text-align: center;
   max-width: 32rem;
-  color: #666;
 
   @media (min-width: 40rem) {
     font-size: 0.9rem;
     margin: 1.25rem auto 0;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    color: #aaa;
   }
 `
 
@@ -321,9 +222,9 @@ export default function LoginSignup() {
             />
           </InputWrapper>
           {(formError || authState.error) && (
-            <ErrorText>{formError || authState.error}</ErrorText>
+            <StyledErrorText>{formError || authState.error}</StyledErrorText>
           )}
-          <PrimaryButton type='submit' disabled={authState.isLoading}>
+          <StyledPrimaryButton type='submit' disabled={authState.isLoading}>
             {authState.isLoading
               ? formMode === 'login'
                 ? 'Signing in…'
@@ -331,10 +232,10 @@ export default function LoginSignup() {
               : formMode === 'login'
               ? 'Log In'
               : 'Sign Up'}
-          </PrimaryButton>
+          </StyledPrimaryButton>
         </LoginForm>
       </AuthCard>
-      <HelperText>
+      <StyledHelperText>
         {formMode === 'login' ? (
           <>
             Don't have an account?{' '}
@@ -346,7 +247,7 @@ export default function LoginSignup() {
             <ToggleLink onClick={toggleFormMode}>Log in here</ToggleLink>
           </>
         )}
-      </HelperText>
+      </StyledHelperText>
     </>
   )
 }

@@ -6,17 +6,18 @@ import styled from 'styled-components'
 import IconButton from './IconButton'
 import CloseSVG from '../assets/close.svg?react'
 import ICON_MAP from '../util/profileIcons'
+import {
+  GlassmorphicContainer,
+  gradientTextStyle,
+} from './shared/StyledComponents'
 
-const Container = styled.div`
+const Container = styled(GlassmorphicContainer)`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   padding: 1rem 1rem 1.25rem;
   border: 0;
-  background: color-mix(in srgb, var(--page-background) 70%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
 `
 
 const Content = styled.div`
@@ -41,21 +42,11 @@ const TitleStack = styled.div`
 const Title = styled.div`
   font-size: 1.35rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  ${gradientTextStyle}
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 100%;
-
-  @media (prefers-color-scheme: dark) {
-    background: linear-gradient(135deg, #a39dc9 0%, #78729f 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
 `
 
 const Subtitle = styled.div`
