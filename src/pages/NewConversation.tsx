@@ -11,18 +11,14 @@ import { StoredConversationType } from '../types'
 import { logOut } from '../store/slices/auth'
 import type { RootState, AppDispatch } from '../store/store'
 
-const PageContainer = styled.div`
-  min-height: 100vh;
+const Content = styled.div`
+  margin: 0 auto;
+  max-width: 42rem;
   padding: 2rem 1rem 3rem;
 
   @media (min-width: 40rem) {
     padding: 3rem 1rem 4rem;
   }
-`
-
-const Content = styled.div`
-  margin: 0 auto;
-  max-width: 42rem;
 `
 
 const PageHeader = styled.div`
@@ -621,51 +617,44 @@ export default function NewConversation() {
   }
 
   return (
-    <PageContainer>
-      <Content>
-        <PageHeader>
-          <Brand>OneTimeChat</Brand>
-          <LogoutButton onClick={handleLogOut} disabled={authState.isLoading}>
-            {authState.isLoading ? 'Logging out…' : 'Log Out'}
-          </LogoutButton>
-        </PageHeader>
+    <Content>
+      <PageHeader>
+        <Brand>OneTimeChat</Brand>
+        <LogoutButton onClick={handleLogOut} disabled={authState.isLoading}>
+          {authState.isLoading ? 'Logging out…' : 'Log Out'}
+        </LogoutButton>
+      </PageHeader>
 
-        <Card>
-          <CardTitle>New Conversation</CardTitle>
-          {inputContainer}
-          {convoError && <ErrorText>{convoError}</ErrorText>}
-        </Card>
+      <Card>
+        <CardTitle>New Conversation</CardTitle>
+        {inputContainer}
+        {convoError && <ErrorText>{convoError}</ErrorText>}
+      </Card>
 
-        <Card>
-          <CardTitle>Your Conversations</CardTitle>
-          {isFetchingConvos && (
-            <LoadingText>Loading conversations…</LoadingText>
-          )}
-          {!isFetchingConvos && !convoError && previousConvos.length > 0 && (
-            <ConversationsList>
-              {previousConvos.map((c) => (
-                <PrevousChatCell
-                  key={c.convoId}
-                  convoId={c.convoId}
-                  name={c.name}
-                  daysRemaining={getDaysRemaining(new Date(), c.deletionDate)}
-                />
-              ))}
-            </ConversationsList>
-          )}
-          {!isFetchingConvos && !previousConvos.length && !convoError && (
-            <HelperText>
-              You have no saved conversations yet. Create a new chat above or
-              ask a teammate to send you an invite link.
-            </HelperText>
-          )}
-        </Card>
+      <Card>
+        <CardTitle>Your Conversations</CardTitle>
+        {isFetchingConvos && <LoadingText>Loading conversations…</LoadingText>}
+        {!isFetchingConvos && !convoError && previousConvos.length > 0 && (
+          <ConversationsList>
+            {previousConvos.map((c) => (
+              <PrevousChatCell
+                key={c.convoId}
+                convoId={c.convoId}
+                name={c.name}
+                daysRemaining={getDaysRemaining(new Date(), c.deletionDate)}
+              />
+            ))}
+          </ConversationsList>
+        )}
+        {!isFetchingConvos && !previousConvos.length && !convoError && (
+          <HelperText>You have not created any conversations yet.</HelperText>
+        )}
+      </Card>
 
-        <ListFooter>
-          Conversations disappear 30 days after the last message was sent.
-          Anyone with a link can see and send messages.
-        </ListFooter>
-      </Content>
-    </PageContainer>
+      <ListFooter>
+        Conversations disappear 30 days after the last message was sent. Anyone
+        with a link can see and send messages.
+      </ListFooter>
+    </Content>
   )
 }

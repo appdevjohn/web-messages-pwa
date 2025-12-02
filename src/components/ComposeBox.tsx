@@ -15,13 +15,9 @@ const Container = styled.div<{ $active?: boolean }>`
     props.$active
       ? 'height: 76px'
       : 'calc(76px + env(safe-area-inset-bottom))'};
-  background-color: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-
-  @media (prefers-color-scheme: dark) {
-    background-color: rgba(30, 30, 30, 0.5);
-  }
+  background: color-mix(in srgb, var(--page-background) 70%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 
   @media (min-width: 40rem) {
     height: 96px;

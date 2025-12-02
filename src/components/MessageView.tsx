@@ -5,20 +5,30 @@ import ICON_MAP from '../util/profileIcons'
 
 const TextBubble = styled.div<{ $highlighted?: boolean; $delivered?: boolean }>`
   display: inline-block;
-  background-color: ${(props) =>
+  background: ${(props) =>
     props.$highlighted
-      ? `var(--accent-color)`
+      ? `linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%)`
       : props.$delivered
       ? 'var(--content-background)'
       : 'gray'};
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   border-radius: 20px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   margin-top: 4px;
   font-size: 16px;
   overflow-wrap: break-word;
   hyphens: auto;
   color: ${(props) => (props.$highlighted ? 'white' : 'initial')};
+
+  @media (prefers-color-scheme: dark) {
+    background: ${(props) =>
+      props.$highlighted
+        ? `linear-gradient(135deg, #78729f 0%, #5a5479 100%)`
+        : props.$delivered
+        ? 'var(--content-background)'
+        : 'gray'};
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
 `
 
 const ImageBubble = styled.div`
@@ -43,7 +53,7 @@ const BlockSenderImage = styled.div`
   height: 44px;
   width: 44px;
   border-radius: 22px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background-color: var(--content-background);
 
   & img {
@@ -51,10 +61,21 @@ const BlockSenderImage = styled.div`
     height: 32px;
     width: 32px;
   }
+
+  @media (prefers-color-scheme: dark) {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
 `
 
 const BlockSenderName = styled.div`
   font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 2px;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
 `
 
 const View = styled.div<{ $margin?: string }>`

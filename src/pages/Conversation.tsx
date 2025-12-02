@@ -17,18 +17,56 @@ import type { RootState } from '../store/store'
 const ErrorViewContainer = styled.div`
   margin: 6rem auto 0 auto;
   text-align: center;
-  max-width: 300px;
+  max-width: 28rem;
+  padding: 0 1rem;
+`
+
+const ErrorCard = styled.div`
+  background: white;
+  border-radius: 20px;
+  padding: 3rem 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+
+  @media (prefers-color-scheme: dark) {
+    background: #2a2a2a;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
+`
+
+const ErrorIcon = styled.div`
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
 `
 
 const ErrorViewTitle = styled.div`
-  font-size: 1rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #a39dc9 0%, #78729f 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 `
 
 const ErrorViewMessage = styled.div`
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 400;
+  color: #666;
+  line-height: 1.5;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
 `
 
 const ShareChatContainer = styled.div`
@@ -37,49 +75,241 @@ const ShareChatContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 80vh;
+  min-height: 70vh;
   width: 100%;
-  padding: 2rem;
+  padding: 2rem 1rem;
 `
 
-const ShareChatLabel = styled.div`
-  font-size: 0.8rem;
+const ShareChatCard = styled.div`
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  max-width: 32rem;
+  width: 100%;
   text-align: center;
-  font-weight: 700;
-  color: gray;
-  margin-bottom: 1rem;
+
+  @media (prefers-color-scheme: dark) {
+    background: #2a2a2a;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  }
 `
 
-const ShareChatButton = styled.button`
+const ShareIcon = styled.div`
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.5rem;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 8px 24px rgba(64, 61, 88, 0.25);
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
+    box-shadow: 0 8px 24px rgba(120, 114, 159, 0.3);
+  }
+`
+
+const ShareChatTitle = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+  color: #222;
+
+  @media (prefers-color-scheme: dark) {
+    color: #e5e5e5;
+  }
+`
+
+const ShareChatLabel = styled.p`
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #666;
+  margin: 0 0 2rem 0;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
+`
+
+const LinkDisplayContainer = styled.div`
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  word-break: break-all;
+  font-size: 0.9rem;
+  color: var(--accent-color);
+  font-family: monospace;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+
+  @media (prefers-color-scheme: dark) {
+    background: #1a1a1a;
+    color: #a39dc9;
+  }
+`
+
+const ButtonGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  @media (min-width: 30rem) {
+    flex-direction: row;
+  }
+`
+
+const PrimaryButton = styled.button`
   appearance: none;
   border: none;
+  border-radius: 12px;
+  padding: 0.875rem 1.5rem;
   font-size: 1rem;
   font-weight: 700;
-  background-color: transparent;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2) 0%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(64, 61, 88, 0.3);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
+
+    &:hover {
+      box-shadow: 0 8px 20px rgba(120, 114, 159, 0.3);
+    }
+  }
+`
+
+const SecondaryButton = styled.button`
+  appearance: none;
+  border: 2px solid var(--accent-color);
+  border-radius: 12px;
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  background: transparent;
   color: var(--accent-color);
   cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+
+  &:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(64, 61, 88, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    border-color: #78729f;
+    color: #a39dc9;
+
+    &:hover {
+      background: #78729f;
+      color: white;
+      box-shadow: 0 4px 12px rgba(120, 114, 159, 0.2);
+    }
+  }
 `
 
 function ErrorView({ title, message }: { title: string; message: string }) {
   return (
     <ErrorViewContainer>
-      <ErrorViewTitle>{title}</ErrorViewTitle>
-      <ErrorViewMessage>{message}</ErrorViewMessage>
+      <ErrorCard>
+        <ErrorIcon>🔍</ErrorIcon>
+        <ErrorViewTitle>{title}</ErrorViewTitle>
+        <ErrorViewMessage>{message}</ErrorViewMessage>
+      </ErrorCard>
     </ErrorViewContainer>
   )
 }
 
 function ShareChat() {
+  const [copySuccess, setCopySuccess] = useState(false)
+  const shareUrl = window.location.href
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ url: shareUrl })
+      } catch (err) {
+        console.error('Failed to share:', err)
+      }
+    }
+  }
+
+  const canShare = navigator.share !== undefined
+
   return (
     <ShareChatContainer>
-      <ShareChatLabel>
-        Share the link to this chat to anyone you want to include.
-      </ShareChatLabel>
-      <ShareChatButton
-        onClick={() => navigator.share({ url: window.location.href })}
-      >
-        Share Chat
-      </ShareChatButton>
+      <ShareChatCard>
+        <ShareIcon>🔗</ShareIcon>
+        <ShareChatTitle>Start the Conversation</ShareChatTitle>
+        <ShareChatLabel>
+          Share this link with anyone you want to include in the chat.
+        </ShareChatLabel>
+        <LinkDisplayContainer>{shareUrl}</LinkDisplayContainer>
+        <ButtonGroup>
+          <PrimaryButton onClick={handleCopy}>
+            {copySuccess ? '✓ Copied!' : 'Copy Link'}
+          </PrimaryButton>
+          {canShare && (
+            <SecondaryButton onClick={handleShare}>Share</SecondaryButton>
+          )}
+        </ButtonGroup>
+      </ShareChatCard>
     </ShareChatContainer>
   )
 }
