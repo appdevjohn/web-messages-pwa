@@ -7,6 +7,15 @@ import restAPI from '../util/rest'
 import type { RootState, AppDispatch } from '../store/store'
 import { updateUserProfile as updateUserProfileAction } from '../store/slices/auth'
 import MessageView from './MessageView'
+import {
+  Card,
+  PrimaryButton,
+  SecondaryButton,
+  TextInput,
+  ErrorText,
+  HelperText,
+  gradientTextStyle,
+} from './shared/StyledComponents'
 
 const appear = keyframes`
   from {
@@ -34,28 +43,30 @@ const Backdrop = styled.div`
   right: 0;
   bottom: 0;
   left: 0;
-  backdrop-filter: blur(10px) brightness(75%);
-  -webkit-backdrop-filter: blur(10px) brightness(75%);
+  backdrop-filter: blur(16px) brightness(85%);
+  -webkit-backdrop-filter: blur(16px) brightness(85%);
+  background: rgba(0, 0, 0, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 1rem;
   z-index: 2;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
   animation: ${appear} 0.2s ease-out;
-`
-
-const Container = styled.div`
-  padding: 12px;
-  margin: 16px 0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  border-radius: 12px;
-  width: 320px;
-  background-color: white;
-  animation: ${moveUp} 0.2s ease-out;
 
   @media (prefers-color-scheme: dark) {
-    background-color: rgb(65, 65, 65);
-    box-shadow: 0px 2px 2px black;
+    backdrop-filter: blur(16px) brightness(60%);
+    -webkit-backdrop-filter: blur(16px) brightness(60%);
+  }
+`
+
+const ModalContainer = styled(Card)`
+  width: calc(100% - 2rem);
+  max-width: 360px;
+  padding: 1.5rem;
+  animation: ${moveUp} 0.2s ease-out;
+
+  @media (min-width: 30rem) {
+    padding: 2rem;
   }
 `
 
@@ -63,24 +74,38 @@ const Header = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
 `
 
-const Title = styled.div`
+const ModalTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
+  margin: 0;
+  ${gradientTextStyle}
 `
 
-const Pill = styled.div`
-  background-color: var(--content-background);
-  color: gray;
-  font-size: 0.7rem;
-  border-radius: 12px;
-  padding: 6px 10px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+const IdentityBadge = styled.div`
+  font-size: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    rgba(64, 61, 88, 0.15) 0%,
+    rgba(90, 84, 121, 0.15) 100%
+  );
+  color: var(--accent-color);
+  font-weight: 600;
+  white-space: nowrap;
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(
+      135deg,
+      rgba(120, 114, 159, 0.2) 0%,
+      rgba(90, 84, 121, 0.2) 100%
+    );
+    color: #a39dc9;
+  }
 `
 
 const FormSection = styled.div`
@@ -88,51 +113,36 @@ const FormSection = styled.div`
   width: 100%;
 `
 
-const FormTitle = styled.div`
+const FormLabel = styled.label`
+  display: block;
   font-size: 0.8rem;
-  padding-left: 0;
-  padding-bottom: 4px;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  @media (prefers-color-scheme: dark) {
+    color: #aaa;
+  }
 `
 
 const FormInfo = styled.div`
   font-size: 0.9rem;
   font-weight: 500;
-`
-
-const Input = styled.input`
-  appearance: none;
-  border: none;
-  height: 36px;
-  border-radius: 8px;
-  background-color: var(--content-background);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  padding: 0 8px;
-  margin-top: 8px;
-  font-size: 1rem;
-  text-align: left;
-  width: calc(100% - 32px);
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.75);
-    transition: all 0.1s ease-out;
-  }
-
-  ::placeholder {
-    color: var(--placeholder-text-color);
-  }
+  color: #333;
 
   @media (prefers-color-scheme: dark) {
-    color: black;
+    color: #e5e5e5;
   }
 `
 
 const AvatarGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 44px 44px;
-  gap: 8px;
-  padding: 8px 0;
+  grid-template-rows: 52px 52px;
+  gap: 0.75rem;
+  padding: 1rem 0;
 `
 
 const AvatarContainer = styled.div`
@@ -142,107 +152,110 @@ const AvatarContainer = styled.div`
 `
 
 const AvatarOption = styled.button<{ $selected?: boolean }>`
-  height: 44px;
-  width: 44px;
-  padding: 0;
-  border-radius: 22px;
-  background-color: ${(props) => (props.$selected ? 'gray' : '#CCCCCC')};
-  appearance: none;
-  border: none;
-  drop-shadow: none;
+  height: 52px;
+  width: 52px;
+  padding: 4px;
+  border-radius: 26px;
+  background: ${(props) =>
+    props.$selected
+      ? 'linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%)'
+      : '#f5f5f5'};
+  border: 3px solid ${(props) =>
+    props.$selected ? 'transparent' : 'rgba(0, 0, 0, 0.08)'};
   cursor: pointer;
-  font-weight: ${(props) => (props.$selected ? '700' : '400')};
+  transition: all 0.2s ease;
+  appearance: none;
+
+  &:hover {
+    border-color: var(--accent-color);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 
   & img {
     object-fit: contain;
-    height: 32px;
-    width: 32px;
+    height: 40px;
+    width: 40px;
+    filter: ${(props) => (props.$selected ? 'brightness(0) invert(1)' : 'none')};
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: ${(props) =>
+      props.$selected
+        ? 'linear-gradient(135deg, #78729f 0%, #5a5479 100%)'
+        : '#2a2a2a'};
+    border-color: ${(props) =>
+      props.$selected ? 'transparent' : 'rgba(255, 255, 255, 0.1)'};
   }
 `
 
 const ButtonContainer = styled.div`
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 0.75rem;
+  margin-top: 1rem;
 `
 
-const CancelButton = styled.button`
+const StyledCancelButton = styled(SecondaryButton)`
   flex: 1;
-  height: 40px;
-  cursor: pointer;
-  background-color: transparent;
-  color: var(--accent-color);
-  border-radius: 8px;
-  appearance: none;
-  drop-shadow: none;
-  border: 2px solid var(--accent-color);
-  font-size: 0.85rem;
-  font-weight: 500;
-
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-  }
+  padding: 0.75rem 1.5rem;
 `
 
-const SaveButton = styled.button`
+const StyledSaveButton = styled(PrimaryButton)`
   flex: 1;
-  height: 40px;
-  cursor: pointer;
-  background-color: var(--accent-color);
-  color: white;
-  border-radius: 8px;
-  appearance: none;
-  drop-shadow: none;
-  border: none;
-  font-size: 0.85rem;
-  font-weight: 700;
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
+  padding: 0.75rem 1.5rem;
 `
 
-const ErrorText = styled.div`
-  color: #c72c41;
-  font-size: 0.8rem;
-  margin-top: 8px;
+const StyledErrorText = styled(ErrorText)`
+  margin-top: 1rem;
   text-align: center;
 `
 
 const DisclaimerSection = styled.div`
-  margin-top: 12px;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+
+  @media (prefers-color-scheme: dark) {
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
 `
 
-const DisclaimerText = styled.div`
+const StyledHelperText = styled(HelperText)`
   font-size: 0.85rem;
-  color: gray;
-  margin-bottom: 12px;
+  text-align: left;
+  margin-bottom: 1rem;
+  line-height: 1.5;
 `
 
 const ToggleButton = styled.button`
   appearance: none;
   border: none;
   background: none;
-  color: gray;
-  font-size: 0.85rem;
-  font-weight: 500;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  padding: 8px 0;
+  padding: 0.75rem 0;
   text-align: left;
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.5rem;
+  transition: color 0.2s ease;
 
   &:hover {
     color: var(--accent-color);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+
+    &:hover {
+      color: #a39dc9;
+    }
   }
 `
 
@@ -319,15 +332,16 @@ const EditProfile = ({
 
   return (
     <Backdrop onClick={onDismiss}>
-      <Container onClick={(e) => e.stopPropagation()}>
+      <ModalContainer onClick={(e) => e.stopPropagation()}>
         <Header>
-          <Title>{isFirstTimeUser ? 'Set Your Name' : 'Edit profile'}</Title>
-          <Pill>{authUser ? 'Account Identity' : 'Anonymous Identity'}</Pill>
+          <ModalTitle>{isFirstTimeUser ? 'Set Your Name' : 'Edit profile'}</ModalTitle>
+          <IdentityBadge>{authUser ? 'Account Identity' : 'Anonymous Identity'}</IdentityBadge>
         </Header>
 
         <FormSection>
-          <FormTitle>Display Name</FormTitle>
-          <Input
+          <FormLabel htmlFor='username'>Display Name</FormLabel>
+          <TextInput
+            id='username'
             name='username'
             type='text'
             placeholder='heyitsme'
@@ -336,7 +350,7 @@ const EditProfile = ({
           />
         </FormSection>
         <FormSection>
-          <FormTitle>Avatar</FormTitle>
+          <FormLabel>Avatar</FormLabel>
           <AvatarGrid>
             {Object.keys(ICON_MAP).map((a) => (
               <AvatarContainer key={a}>
@@ -352,8 +366,8 @@ const EditProfile = ({
         </FormSection>
 
         <ButtonContainer>
-          <CancelButton onClick={onDismiss}>Cancel</CancelButton>
-          <SaveButton
+          <StyledCancelButton onClick={onDismiss}>Cancel</StyledCancelButton>
+          <StyledSaveButton
             onClick={handleSave}
             disabled={
               isFirstTimeUser
@@ -362,9 +376,9 @@ const EditProfile = ({
             }
           >
             {isSaving ? 'Saving…' : isFirstTimeUser ? 'Join Chat' : 'Save'}
-          </SaveButton>
+          </StyledSaveButton>
         </ButtonContainer>
-        {error && <ErrorText>{error}</ErrorText>}
+        {error && <StyledErrorText>{error}</StyledErrorText>}
 
         {authUser && (
           <DisclaimerSection>
@@ -373,18 +387,18 @@ const EditProfile = ({
               Show Account Information
             </ToggleButton>
             {showDisclaimer && (
-              <DisclaimerText>
+              <>
                 <FormSection>
-                  <FormTitle>Username</FormTitle>
+                  <FormLabel>Username</FormLabel>
                   <FormInfo>@{authUser.username}</FormInfo>
                 </FormSection>
                 {authUser.email && (
                   <FormSection>
-                    <FormTitle>Email</FormTitle>
+                    <FormLabel>Email</FormLabel>
                     <FormInfo>{authUser.email}</FormInfo>
                   </FormSection>
                 )}
-              </DisclaimerText>
+              </>
             )}
           </DisclaimerSection>
         )}
@@ -401,7 +415,7 @@ const EditProfile = ({
             </ToggleButton>
             {showDisclaimer && (
               <>
-                <DisclaimerText>
+                <StyledHelperText>
                   You're using an Anonymous Identity. If you switch devices,
                   reset your browser, or change your info, your earlier messages
                   won't appear as "you." Also, if someone else in the chat
@@ -409,7 +423,7 @@ const EditProfile = ({
                   like yours on your device. Signing in will switch to your
                   Account Identity and keep your profile consistent and unique
                   going forward.
-                </DisclaimerText>
+                </StyledHelperText>
                 {hasChangedProfile &&
                   previousName &&
                   previousAvatar &&
@@ -449,7 +463,7 @@ const EditProfile = ({
             )}
           </DisclaimerSection>
         )}
-      </Container>
+      </ModalContainer>
     </Backdrop>
   )
 }
