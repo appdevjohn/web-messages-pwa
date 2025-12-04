@@ -52,13 +52,21 @@ const Brand = styled.h1`
   }
 `
 
-const StyledCard = styled(Card)`
+const StyledCard = styled(Card)<{ $variant?: 'default' | 'transparent' }>`
   padding: 1.5rem;
   margin-bottom: 2rem;
 
   @media (min-width: 40rem) {
     padding: 2rem;
   }
+
+  ${(props) =>
+    props.$variant === 'transparent' &&
+    `
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  `}
 `
 
 const CardTitle = styled.h2`
@@ -476,7 +484,7 @@ export default function NewConversation() {
         {convoError && <StyledErrorText>{convoError}</StyledErrorText>}
       </StyledCard>
 
-      <StyledCard>
+      <StyledCard $variant="transparent">
         <CardTitle>Your Conversations</CardTitle>
         {isFetchingConvos && <LoadingText>Loading conversations…</LoadingText>}
         {!isFetchingConvos && !convoError && previousConvos.length > 0 && (
