@@ -107,6 +107,11 @@ const ConversationsList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  margin: 0 -1.5rem;
+
+  @media (min-width: 40rem) {
+    margin: 0 -2rem;
+  }
 `
 
 const ListCell = styled.div`
@@ -161,6 +166,10 @@ const ListCell = styled.div`
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5),
         0 2px 8px rgba(120, 114, 159, 0.2);
     }
+  }
+
+  @media (min-width: 40rem) {
+    padding: 1.25rem 2rem;
   }
 `
 
@@ -484,7 +493,7 @@ export default function NewConversation() {
         {convoError && <StyledErrorText>{convoError}</StyledErrorText>}
       </StyledCard>
 
-      <StyledCard $variant="transparent">
+      <StyledCard $variant='transparent'>
         <CardTitle>Your Conversations</CardTitle>
         {isFetchingConvos && <LoadingText>Loading conversations…</LoadingText>}
         {!isFetchingConvos && !convoError && previousConvos.length > 0 && (
@@ -500,7 +509,9 @@ export default function NewConversation() {
           </ConversationsList>
         )}
         {!isFetchingConvos && !previousConvos.length && !convoError && (
-          <StyledHelperText>You have not created any conversations yet.</StyledHelperText>
+          <StyledHelperText>
+            You have not created any conversations yet.
+          </StyledHelperText>
         )}
       </StyledCard>
 
