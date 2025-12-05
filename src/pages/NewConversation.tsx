@@ -15,7 +15,6 @@ import {
   PrimaryButton,
   TextInput,
   ErrorText,
-  HelperText,
   gradientTextStyle,
 } from '../components/shared/StyledComponents'
 
@@ -223,6 +222,11 @@ const ListFooter = styled.div`
   margin: 2.5rem auto 0 auto;
   line-height: 1.5;
   color: #666;
+  padding: 0 1.5rem;
+
+  @media (min-width: 40rem) {
+    padding: 0 2rem;
+  }
 
   @media (prefers-color-scheme: dark) {
     color: #999;
@@ -236,21 +240,6 @@ const LogoutButton = styled(PrimaryButton)`
 
 const StyledErrorText = styled(ErrorText)`
   margin-bottom: 1rem;
-`
-
-const StyledHelperText = styled(HelperText)`
-  margin: 2rem auto 0;
-`
-
-const LoadingText = styled.div`
-  font-size: 0.95rem;
-  text-align: center;
-  margin: 2rem auto;
-  color: #666;
-
-  @media (prefers-color-scheme: dark) {
-    color: #999;
-  }
 `
 
 const PrevousChatCell = ({
@@ -286,7 +275,7 @@ export default function NewConversation() {
   const [previousConvos, setPreviousConvos] = useState<
     StoredConversationType[]
   >([])
-  const [isFetchingConvos, setIsFetchingConvos] = useState(false)
+  const [_, setIsFetchingConvos] = useState(false) // Unused but kept for potential future use
   const [convoError, setConvoError] = useState<string | null>(null)
   const [isCreatingConvo, setIsCreatingConvo] = useState(false)
 
@@ -498,10 +487,9 @@ export default function NewConversation() {
         {convoError && <StyledErrorText>{convoError}</StyledErrorText>}
       </StyledCard>
 
-      <StyledCard $variant='transparent'>
-        <CardTitle>Your Conversations</CardTitle>
-        {isFetchingConvos && <LoadingText>Loading conversations…</LoadingText>}
-        {!isFetchingConvos && !convoError && previousConvos.length > 0 && (
+      {previousConvos.length > 0 && (
+        <StyledCard $variant='transparent'>
+          <CardTitle>Your Conversations</CardTitle>
           <ConversationsList>
             {previousConvos.map((c) => (
               <PrevousChatCell
@@ -512,13 +500,8 @@ export default function NewConversation() {
               />
             ))}
           </ConversationsList>
-        )}
-        {!isFetchingConvos && !previousConvos.length && !convoError && (
-          <StyledHelperText>
-            You have not created any conversations yet.
-          </StyledHelperText>
-        )}
-      </StyledCard>
+        </StyledCard>
+      )}
 
       <ListFooter>
         Conversations disappear 30 days after the last message was sent. Anyone
