@@ -86,8 +86,13 @@ const CardTitle = styled.h2`
 
 const InputRow = styled.div`
   display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   align-items: stretch;
+
+  @media (min-width: 40rem) {
+    flex-direction: row;
+  }
 `
 
 const InputWrapper = styled.div`
