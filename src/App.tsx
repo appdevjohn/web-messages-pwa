@@ -1,17 +1,30 @@
 import { useEffect, useState } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { Provider } from 'react-redux'
+import { Provider, useSelector } from 'react-redux'
 
 import { store } from './store/store'
 import { initializeAuth } from './store/slices/auth'
+import type { RootState } from './store/store'
 import UserContext, { UserType } from './util/userContext'
 import ConversationView from './pages/Conversation'
 import NewConversation from './pages/NewConversation'
+import Landing from './pages/Landing'
+
+function HomePage() {
+  const authState = useSelector((state: RootState) => state.auth)
+  const isLoggedIn = Boolean(authState.accessToken)
+
+  if (!isLoggedIn) {
+    return <Landing />
+  }
+
+  return <NewConversation />
+}
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <NewConversation />,
+    element: <HomePage />,
   },
   {
     path: '/:convoId',

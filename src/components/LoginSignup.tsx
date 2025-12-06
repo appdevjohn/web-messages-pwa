@@ -1,91 +1,99 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 
 import { logIn, signUp } from '../store/slices/auth'
 import type { RootState, AppDispatch } from '../store/store'
+import {
+  Card,
+  PrimaryButton,
+  TextInput,
+  ErrorText,
+  HelperText,
+} from './shared/StyledComponents'
 
-const AuthCard = styled.div`
-  box-sizing: border-box;
-  margin: 0 auto;
-  padding: 1.5rem;
-  max-width: 28rem;
-  background-color: var(--content-background);
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
-  border-radius: 16px;
-
-  @media (prefers-color-scheme: dark) {
-    background-color: #333333;
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 `
 
-const FormTitle = styled.div`
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
+const AuthCard = styled(Card)`
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+  max-width: 28rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  animation: ${slideUp} 0.4s ease-out;
+
+  @media (min-width: 40rem) {
+    padding: 2rem 1.5rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: linear-gradient(to bottom, #2a2a2a 0%, #1f1f1f 100%);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
 `
 
 const LoginForm = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.875rem;
+
+  @media (min-width: 40rem) {
+    gap: 1rem;
+  }
 `
 
-const TextInput = styled.input`
-  appearance: none;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  background-color: white;
+const InputWrapper = styled.div`
+  position: relative;
+`
 
-  &:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(255, 135, 30, 0.25);
-  }
+const InputLabel = styled.label`
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 
   @media (prefers-color-scheme: dark) {
-    background-color: rgb(45, 45, 45);
-    color: white;
-    border-color: rgba(255, 255, 255, 0.1);
+    color: #aaa;
   }
 `
 
-const PrimaryButton = styled.button`
-  appearance: none;
-  border: none;
-  border-radius: 999px;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  font-weight: 700;
-  background-color: var(--accent-color);
-  color: white;
-  cursor: pointer;
-  transition: transform 0.1s ease;
+const StyledPrimaryButton = styled(PrimaryButton)`
+  padding: 0.875rem 1rem;
+  margin-top: 0.25rem;
 
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  @media (min-width: 40rem) {
+    padding: 1rem;
+    margin-top: 0.5rem;
   }
 `
 
-const ErrorText = styled.div`
+const StyledErrorText = styled(ErrorText)`
   font-size: 0.85rem;
-  color: #c72c41;
-  font-weight: 500;
+  padding: 0.5rem 0.75rem;
 `
 
-const HelperText = styled.div`
-  font-size: 0.95rem;
-  margin: 1.5rem auto 0;
-  text-align: center;
+const StyledHelperText = styled(HelperText)`
+  margin: 1rem auto 0;
   max-width: 32rem;
+
+  @media (min-width: 40rem) {
+    font-size: 0.9rem;
+    margin: 1.25rem auto 0;
+  }
 `
 
 const ToggleLink = styled.button`
@@ -93,14 +101,16 @@ const ToggleLink = styled.button`
   border: none;
   background: none;
   color: var(--accent-color);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   padding: 0;
-  text-decoration: underline;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s ease;
 
   &:hover {
-    opacity: 0.8;
+    border-bottom-color: var(--accent-color);
   }
 `
 
@@ -160,50 +170,61 @@ export default function LoginSignup() {
   return (
     <>
       <AuthCard>
-        <FormTitle>
-          {formMode === 'login' ? 'Log in to continue' : 'Create an account'}
-        </FormTitle>
-        <LoginForm
-          onSubmit={formMode === 'login' ? handleLogIn : handleSignUp}
-        >
+        <LoginForm onSubmit={formMode === 'login' ? handleLogIn : handleSignUp}>
           {formMode === 'signup' && (
             <>
-              <TextInput
-                type='text'
-                placeholder='Display Name'
-                value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
-                autoComplete='name'
-              />
-              <TextInput
-                type='email'
-                placeholder='Email (optional)'
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete='email'
-              />
+              <InputWrapper>
+                <InputLabel>Display Name</InputLabel>
+                <TextInput
+                  type='text'
+                  placeholder='John Doe'
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  autoComplete='name'
+                />
+              </InputWrapper>
+              <InputWrapper>
+                <InputLabel>Email (Optional)</InputLabel>
+                <TextInput
+                  type='email'
+                  placeholder='john@example.com'
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  autoComplete='email'
+                />
+              </InputWrapper>
             </>
           )}
-          <TextInput
-            type='text'
-            placeholder='Username'
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            autoComplete='username'
-          />
-          <TextInput
-            type='password'
-            placeholder='Password'
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete={
-              formMode === 'login' ? 'current-password' : 'new-password'
-            }
-          />
+          <InputWrapper>
+            <InputLabel>Username</InputLabel>
+            <TextInput
+              type='text'
+              placeholder={
+                formMode === 'login' ? 'Enter username' : 'Choose a username'
+              }
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              autoComplete='username'
+            />
+          </InputWrapper>
+          <InputWrapper>
+            <InputLabel>Password</InputLabel>
+            <TextInput
+              type='password'
+              placeholder={
+                formMode === 'login' ? 'Enter password' : 'Create a password'
+              }
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete={
+                formMode === 'login' ? 'current-password' : 'new-password'
+              }
+            />
+          </InputWrapper>
           {(formError || authState.error) && (
-            <ErrorText>{formError || authState.error}</ErrorText>
+            <StyledErrorText>{formError || authState.error}</StyledErrorText>
           )}
-          <PrimaryButton type='submit' disabled={authState.isLoading}>
+          <StyledPrimaryButton type='submit' disabled={authState.isLoading}>
             {authState.isLoading
               ? formMode === 'login'
                 ? 'Signing in…'
@@ -211,10 +232,10 @@ export default function LoginSignup() {
               : formMode === 'login'
               ? 'Log In'
               : 'Sign Up'}
-          </PrimaryButton>
+          </StyledPrimaryButton>
         </LoginForm>
       </AuthCard>
-      <HelperText>
+      <StyledHelperText>
         {formMode === 'login' ? (
           <>
             Don't have an account?{' '}
@@ -226,7 +247,7 @@ export default function LoginSignup() {
             <ToggleLink onClick={toggleFormMode}>Log in here</ToggleLink>
           </>
         )}
-      </HelperText>
+      </StyledHelperText>
     </>
   )
 }

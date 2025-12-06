@@ -5,8 +5,9 @@ import styled from 'styled-components'
 
 import IconButton from './IconButton'
 import FileUploadSVG from '../assets/file-upload.svg?react'
+import { GlassmorphicContainer } from './shared/StyledComponents'
 
-const Container = styled.div<{ $active?: boolean }>`
+const Container = styled(GlassmorphicContainer)<{ $active?: boolean }>`
   position: fixed;
   bottom: 0;
   left: 0;
@@ -15,13 +16,6 @@ const Container = styled.div<{ $active?: boolean }>`
     props.$active
       ? 'height: 76px'
       : 'calc(76px + env(safe-area-inset-bottom))'};
-  background-color: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-
-  @media (prefers-color-scheme: dark) {
-    background-color: rgba(30, 30, 30, 0.5);
-  }
 
   @media (min-width: 40rem) {
     height: 96px;

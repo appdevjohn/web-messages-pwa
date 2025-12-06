@@ -13,22 +13,48 @@ import ComposeBox from '../components/ComposeBox'
 import EditProfile from '../components/EditProfile'
 import SetupProfileButton from '../components/SetupProfileButton'
 import type { RootState } from '../store/store'
+import {
+  Card,
+  PrimaryButton,
+  SecondaryButton,
+  IconContainer,
+  LinkDisplayContainer,
+  gradientTextStyle,
+} from '../components/shared/StyledComponents'
 
 const ErrorViewContainer = styled.div`
   margin: 6rem auto 0 auto;
   text-align: center;
-  max-width: 300px;
+  max-width: 28rem;
+  padding: 0 1rem;
+`
+
+const ErrorCard = styled(Card)`
+  padding: 3rem 2rem;
+`
+
+const ErrorIcon = styled.div`
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.6;
 `
 
 const ErrorViewTitle = styled.div`
-  font-size: 1rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1rem;
+  ${gradientTextStyle}
 `
 
 const ErrorViewMessage = styled.div`
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 400;
+  color: #666;
+  line-height: 1.5;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
 `
 
 const ShareChatContainer = styled.div`
@@ -37,49 +63,124 @@ const ShareChatContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 80vh;
+  min-height: 70vh;
   width: 100%;
-  padding: 2rem;
+  padding: 2rem 1rem;
 `
 
-const ShareChatLabel = styled.div`
-  font-size: 0.8rem;
+const ShareChatCard = styled(Card)`
+  max-width: 32rem;
+  width: 100%;
   text-align: center;
-  font-weight: 700;
-  color: gray;
-  margin-bottom: 1rem;
 `
 
-const ShareChatButton = styled.button`
-  appearance: none;
-  border: none;
-  font-size: 1rem;
+const ShareIcon = styled(IconContainer)`
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
+`
+
+const ShareChatTitle = styled.h2`
+  font-size: 1.5rem;
   font-weight: 700;
-  background-color: transparent;
-  color: var(--accent-color);
-  cursor: pointer;
+  margin: 0 0 0.75rem 0;
+  color: #222;
+
+  @media (prefers-color-scheme: dark) {
+    color: #e5e5e5;
+  }
+`
+
+const ShareChatLabel = styled.p`
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #666;
+  margin: 0 0 2rem 0;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
+`
+
+const StyledLinkDisplay = styled(LinkDisplayContainer)`
+  margin-bottom: 1.25rem;
+`
+
+const ButtonGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  @media (min-width: 30rem) {
+    flex-direction: row;
+  }
+`
+
+const StyledPrimaryButton = styled(PrimaryButton)`
+  flex: 1;
+`
+
+const StyledSecondaryButton = styled(SecondaryButton)`
+  flex: 1;
 `
 
 function ErrorView({ title, message }: { title: string; message: string }) {
   return (
     <ErrorViewContainer>
-      <ErrorViewTitle>{title}</ErrorViewTitle>
-      <ErrorViewMessage>{message}</ErrorViewMessage>
+      <ErrorCard>
+        <ErrorIcon>🔍</ErrorIcon>
+        <ErrorViewTitle>{title}</ErrorViewTitle>
+        <ErrorViewMessage>{message}</ErrorViewMessage>
+      </ErrorCard>
     </ErrorViewContainer>
   )
 }
 
 function ShareChat() {
+  const [copySuccess, setCopySuccess] = useState(false)
+  const shareUrl = window.location.href
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ url: shareUrl })
+      } catch (err) {
+        console.error('Failed to share:', err)
+      }
+    }
+  }
+
+  const canShare = navigator.share !== undefined
+
   return (
     <ShareChatContainer>
-      <ShareChatLabel>
-        Share the link to this chat to anyone you want to include.
-      </ShareChatLabel>
-      <ShareChatButton
-        onClick={() => navigator.share({ url: window.location.href })}
-      >
-        Share Chat
-      </ShareChatButton>
+      <ShareChatCard>
+        <ShareIcon>🔗</ShareIcon>
+        <ShareChatTitle>Start the Conversation</ShareChatTitle>
+        <ShareChatLabel>
+          Share this link with anyone you want to include in the chat.
+        </ShareChatLabel>
+        <StyledLinkDisplay>{shareUrl}</StyledLinkDisplay>
+        <ButtonGroup>
+          <StyledPrimaryButton onClick={handleCopy}>
+            {copySuccess ? '✓ Copied!' : 'Copy Link'}
+          </StyledPrimaryButton>
+          {canShare && (
+            <StyledSecondaryButton onClick={handleShare}>Share</StyledSecondaryButton>
+          )}
+        </ButtonGroup>
+      </ShareChatCard>
     </ShareChatContainer>
   )
 }
