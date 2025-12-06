@@ -212,7 +212,7 @@ export const authSlice = createSlice({
       state.accessToken = null
       state.refreshToken = null
       state.isLoading = false
-      state.error = action.error.message || 'Login failed'
+      state.error = null
     })
     builder.addCase(initializeAuth.pending, (state) => {
       state.isLoading = true
