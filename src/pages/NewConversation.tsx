@@ -133,31 +133,14 @@ const ListCell = styled.div`
   position: relative;
   overflow: hidden;
 
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-
   &:hover {
     border-color: var(--accent-color);
     box-shadow: 0 8px 24px rgba(64, 61, 88, 0.15),
       0 2px 8px rgba(64, 61, 88, 0.08);
-    transform: translateX(4px);
-
-    &::before {
-      opacity: 1;
-    }
   }
 
   &:active {
-    transform: translateX(2px) scale(0.99);
+    transform: scale(0.99);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -216,6 +199,43 @@ const ExpiryBadge = styled.div`
   }
 `
 
+const DeleteButton = styled.button`
+  padding: 0.4rem 0.75rem;
+  background: rgba(220, 53, 69, 0.1);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #dc3545;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(220, 53, 69, 0.2);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: rgba(220, 53, 69, 0.15);
+    color: #ff6b7a;
+
+    &:hover {
+      background: rgba(220, 53, 69, 0.25);
+    }
+  }
+`
+
+const ConversationActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`
+
 const ListFooter = styled.div`
   text-align: center;
   font-size: 0.875rem;
@@ -246,20 +266,34 @@ const PrevousChatCell = ({
   convoId,
   name,
   daysRemaining,
+  onDelete,
 }: {
   convoId: string
   name: string
   daysRemaining: number
+  onDelete: (convoId: string) => void
 }) => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
+      onDelete(convoId)
+    }
+  }
+
   return (
     <Link to={`/${convoId}`} style={{ textDecoration: 'none' }}>
       <ListCell>
         <ConversationInfo>
           <ListCellTitle>{name}</ListCellTitle>
         </ConversationInfo>
-        <ExpiryBadge>
-          ⏱ {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}
-        </ExpiryBadge>
+        <ConversationActions>
+          <ExpiryBadge>
+            ⏱ {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}
+          </ExpiryBadge>
+          <DeleteButton onClick={handleDelete}>Delete</DeleteButton>
+        </ConversationActions>
       </ListCell>
     </Link>
   )
@@ -467,6 +501,31 @@ export default function NewConversation() {
     </InputRow>
   )
 
+  const handleDeleteConversation = (convoId: string) => {
+    if (!isLoggedIn || !isSocketConnected) {
+      return
+    }
+
+    socket.emit(
+      'delete-conversation',
+      {
+        convoId,
+        token: authState.accessToken || '',
+      },
+      (response: any) => {
+        if (response?.success) {
+          // Refresh the conversation list
+          fetchConversations()
+        } else {
+          setConvoError(
+            response?.error ||
+              'Failed to delete conversation. Please try again.'
+          )
+        }
+      }
+    )
+  }
+
   const handleLogOut = () => {
     dispatch(logOut())
     setConvoName('')
@@ -497,6 +556,7 @@ export default function NewConversation() {
                 convoId={c.convoId}
                 name={c.name}
                 daysRemaining={getDaysRemaining(new Date(), c.deletionDate)}
+                onDelete={handleDeleteConversation}
               />
             ))}
           </ConversationsList>
