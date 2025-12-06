@@ -8,11 +8,11 @@ import {
 const LandingHeader = styled.header`
   position: relative;
   z-index: 2;
-  padding: 1.5rem 1rem 0.75rem;
+  padding: 2.25rem 1rem 0.75rem;
   text-align: center;
 
   @media (min-width: 40rem) {
-    padding: 2rem 1rem 1rem;
+    padding: 3rem 1rem 1rem;
   }
 `
 
@@ -27,10 +27,10 @@ const LogoBadge = styled(IconContainer)`
   @keyframes float {
     0%,
     100% {
-      transform: translateY(0px);
+      transform: translateY(4px);
     }
     50% {
-      transform: translateY(-8px);
+      transform: translateY(-4px);
     }
   }
 
