@@ -16,6 +16,7 @@ import {
   HelperText,
   gradientTextStyle,
 } from './shared/StyledComponents'
+import AuthForm, { AuthToggleText, AuthToggleLink } from './AuthForm'
 
 const appear = keyframes`
   from {
@@ -109,7 +110,7 @@ const IdentityBadge = styled.div`
 `
 
 const FormSection = styled.div`
-  margin-bottom: 1rem;
+  margin-top: 1rem;
   width: 100%;
 `
 
@@ -154,14 +155,13 @@ const AvatarContainer = styled.div`
 const AvatarOption = styled.button<{ $selected?: boolean }>`
   height: 52px;
   width: 52px;
-  padding: 4px;
   border-radius: 26px;
   background: ${(props) =>
     props.$selected
       ? 'linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%)'
       : '#f5f5f5'};
-  border: 3px solid ${(props) =>
-    props.$selected ? 'transparent' : 'rgba(0, 0, 0, 0.08)'};
+  border: ${(props) =>
+    props.$selected ? 'none' : '3px solid rgba(0, 0, 0, 0.08)'};
   cursor: pointer;
   transition: all 0.2s ease;
   appearance: none;
@@ -177,9 +177,10 @@ const AvatarOption = styled.button<{ $selected?: boolean }>`
 
   & img {
     object-fit: contain;
-    height: 40px;
-    width: 40px;
-    filter: ${(props) => (props.$selected ? 'brightness(0) invert(1)' : 'none')};
+    height: 36px;
+    width: 36px;
+    filter: ${(props) =>
+      props.$selected ? 'brightness(0) invert(1)' : 'none'};
   }
 
   @media (prefers-color-scheme: dark) {
@@ -188,7 +189,14 @@ const AvatarOption = styled.button<{ $selected?: boolean }>`
         ? 'linear-gradient(135deg, #78729f 0%, #5a5479 100%)'
         : '#2a2a2a'};
     border-color: ${(props) =>
-      props.$selected ? 'transparent' : 'rgba(255, 255, 255, 0.1)'};
+      props.$selected ? '#78729f' : 'rgba(255, 255, 255, 0.1)'};
+
+    & img {
+      filter: ${(props) =>
+        props.$selected
+          ? 'brightness(0) invert(1)'
+          : 'brightness(0) invert(1) opacity(0.6)'};
+    }
   }
 `
 
@@ -214,8 +222,8 @@ const StyledErrorText = styled(ErrorText)`
 `
 
 const DisclaimerSection = styled.div`
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
 
   @media (prefers-color-scheme: dark) {
@@ -226,7 +234,6 @@ const DisclaimerSection = styled.div`
 const StyledHelperText = styled(HelperText)`
   font-size: 0.85rem;
   text-align: left;
-  margin-bottom: 1rem;
   line-height: 1.5;
 `
 
@@ -238,7 +245,7 @@ const ToggleButton = styled.button`
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  padding: 0.75rem 0;
+  padding: 0.5rem 0;
   text-align: left;
   width: 100%;
   display: flex;
@@ -280,7 +287,8 @@ const EditProfile = ({
   onDismiss: () => void
 }) => {
   const dispatch = useDispatch<AppDispatch>()
-  const authUser = useSelector((state: RootState) => state.auth.user)
+  const authState = useSelector((state: RootState) => state.auth)
+  const authUser = authState.user
   const [name, setName] = useState(authUser?.displayName || user?.name || '')
   const [avatar, setAvatar] = useState(
     authUser?.profilePicURL || user?.avatar || ''
@@ -291,10 +299,21 @@ const EditProfile = ({
   const [previousAvatar] = useState(user?.avatar || '')
   const [showDisclaimer, setShowDisclaimer] = useState(false)
 
+  // Auth form state
+  const [viewMode, setViewMode] = useState<'profile' | 'auth'>('profile')
+  const [authFormMode, setAuthFormMode] = useState<'login' | 'signup'>('login')
+
   useEffect(() => {
     setName(authUser?.displayName || user?.name || '')
     setAvatar(authUser?.profilePicURL || user?.avatar || '')
   }, [authUser, user])
+
+  // Close modal when auth succeeds
+  useEffect(() => {
+    if (authUser && viewMode === 'auth') {
+      onDismiss()
+    }
+  }, [authUser, viewMode, onDismiss])
 
   const handleSave = async () => {
     if (authUser) {
@@ -324,6 +343,18 @@ const EditProfile = ({
     onChangeUser({ name, avatar })
   }
 
+  const toggleAuthFormMode = () => {
+    setAuthFormMode((prev) => (prev === 'login' ? 'signup' : 'login'))
+  }
+
+  const switchToAuthView = () => {
+    setViewMode('auth')
+  }
+
+  const switchToProfileView = () => {
+    setViewMode('profile')
+  }
+
   const hasChangedProfile = authUser
     ? name !== (authUser.displayName || '') ||
       avatar !== (authUser.profilePicURL || '')
@@ -334,53 +365,108 @@ const EditProfile = ({
     <Backdrop onClick={onDismiss}>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <Header>
-          <ModalTitle>{isFirstTimeUser ? 'Set Your Name' : 'Edit profile'}</ModalTitle>
-          <IdentityBadge>{authUser ? 'Account Identity' : 'Anonymous Identity'}</IdentityBadge>
+          <ModalTitle>
+            {viewMode === 'auth'
+              ? authFormMode === 'login'
+                ? 'Log In'
+                : 'Sign Up'
+              : isFirstTimeUser
+              ? 'Set Your Name'
+              : 'Edit profile'}
+          </ModalTitle>
+          {viewMode === 'profile' && (
+            <IdentityBadge>
+              {authUser ? 'Account Identity' : 'Anonymous Identity'}
+            </IdentityBadge>
+          )}
         </Header>
 
-        <FormSection>
-          <FormLabel htmlFor='username'>Display Name</FormLabel>
-          <TextInput
-            id='username'
-            name='username'
-            type='text'
-            placeholder='heyitsme'
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </FormSection>
-        <FormSection>
-          <FormLabel>Avatar</FormLabel>
-          <AvatarGrid>
-            {Object.keys(ICON_MAP).map((a) => (
-              <AvatarContainer key={a}>
-                <AvatarOption
-                  $selected={a === avatar}
-                  onClick={() => setAvatar(a)}
-                >
-                  <img src={ICON_MAP[a]} alt={a} />
-                </AvatarOption>
-              </AvatarContainer>
-            ))}
-          </AvatarGrid>
-        </FormSection>
+        {viewMode === 'auth' ? (
+          <>
+            <AuthForm
+              mode={authFormMode}
+              onCancel={switchToProfileView}
+              cancelButtonText='Back'
+            />
+            <DisclaimerSection>
+              <AuthToggleText>
+                {authFormMode === 'login' ? (
+                  <>
+                    Don't have an account?{' '}
+                    <AuthToggleLink onClick={toggleAuthFormMode}>
+                      Sign up here
+                    </AuthToggleLink>
+                  </>
+                ) : (
+                  <>
+                    Already have an account?{' '}
+                    <AuthToggleLink onClick={toggleAuthFormMode}>
+                      Log in here
+                    </AuthToggleLink>
+                  </>
+                )}
+              </AuthToggleText>
+            </DisclaimerSection>
+          </>
+        ) : (
+          <>
+            <FormSection>
+              <FormLabel htmlFor='username'>Display Name</FormLabel>
+              <TextInput
+                id='username'
+                name='username'
+                type='text'
+                placeholder='heyitsme'
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </FormSection>
+            <FormSection>
+              <FormLabel>Avatar</FormLabel>
+              <AvatarGrid>
+                {Object.keys(ICON_MAP).map((a) => (
+                  <AvatarContainer key={a}>
+                    <AvatarOption
+                      $selected={a === avatar}
+                      onClick={() => setAvatar(a)}
+                    >
+                      <img src={ICON_MAP[a]} alt={a} />
+                    </AvatarOption>
+                  </AvatarContainer>
+                ))}
+              </AvatarGrid>
+            </FormSection>
+            <ButtonContainer>
+              <StyledCancelButton onClick={onDismiss}>
+                Cancel
+              </StyledCancelButton>
+              <StyledSaveButton
+                onClick={handleSave}
+                disabled={
+                  isFirstTimeUser
+                    ? !name || !avatar || isSaving
+                    : !hasChangedProfile || isSaving
+                }
+              >
+                {isSaving ? 'Saving…' : isFirstTimeUser ? 'Join Chat' : 'Save'}
+              </StyledSaveButton>
+            </ButtonContainer>
+            {error && <StyledErrorText>{error}</StyledErrorText>}
 
-        <ButtonContainer>
-          <StyledCancelButton onClick={onDismiss}>Cancel</StyledCancelButton>
-          <StyledSaveButton
-            onClick={handleSave}
-            disabled={
-              isFirstTimeUser
-                ? !name || !avatar || isSaving
-                : !hasChangedProfile || isSaving
-            }
-          >
-            {isSaving ? 'Saving…' : isFirstTimeUser ? 'Join Chat' : 'Save'}
-          </StyledSaveButton>
-        </ButtonContainer>
-        {error && <StyledErrorText>{error}</StyledErrorText>}
+            {isFirstTimeUser && (
+              <DisclaimerSection>
+                <AuthToggleText>
+                  Already have an account?{' '}
+                  <AuthToggleLink onClick={switchToAuthView}>
+                    Sign in
+                  </AuthToggleLink>
+                </AuthToggleText>
+              </DisclaimerSection>
+            )}
+          </>
+        )}
 
-        {authUser && (
+        {viewMode === 'profile' && authUser && (
           <DisclaimerSection>
             <ToggleButton onClick={() => setShowDisclaimer(!showDisclaimer)}>
               <Caret $isOpen={showDisclaimer}>▶</Caret>
@@ -402,7 +488,7 @@ const EditProfile = ({
             )}
           </DisclaimerSection>
         )}
-        {!authUser && (
+        {viewMode === 'profile' && !authUser && !isFirstTimeUser && (
           <DisclaimerSection>
             <ToggleButton onClick={() => setShowDisclaimer(!showDisclaimer)}>
               <Caret $isOpen={showDisclaimer}>▶</Caret>
