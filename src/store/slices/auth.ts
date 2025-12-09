@@ -207,7 +207,7 @@ export const authSlice = createSlice({
       }
       state.isLoading = false
     })
-    builder.addCase(initializeAuth.rejected, (state, action) => {
+    builder.addCase(initializeAuth.rejected, (state, _action) => {
       state.user = null
       state.accessToken = null
       state.refreshToken = null
