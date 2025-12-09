@@ -169,17 +169,17 @@ export const TextInput = styled.input`
   }
 
   @media (prefers-color-scheme: dark) {
-    background-color: #2a2a2a;
+    background-color: #1a1a1a;
     color: white;
-    border-color: transparent;
+    border-color: rgba(255, 255, 255, 0.1);
 
     &::placeholder {
       color: #666;
     }
 
     &:focus {
-      background-color: #333;
-      border-color: var(--accent-color);
+      background-color: #252525;
+      border-color: #78729f;
       box-shadow: 0 0 0 4px rgba(120, 114, 159, 0.15);
     }
   }
