@@ -1,0 +1,252 @@
+import { useState } from 'react'
+import type { FormEvent } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import styled from 'styled-components'
+
+import { logIn, signUp } from '../store/slices/auth'
+import type { RootState, AppDispatch } from '../store/store'
+import {
+  PrimaryButton,
+  SecondaryButton,
+  TextInput,
+  ErrorText,
+} from './shared/StyledComponents'
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`
+
+const FormSection = styled.div`
+  margin: 0;
+  width: 100%;
+`
+
+const FormLabel = styled.label`
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  @media (prefers-color-scheme: dark) {
+    color: #aaa;
+  }
+`
+
+const StyledErrorText = styled(ErrorText)`
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+`
+
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0rem;
+`
+
+const StyledPrimaryButton = styled(PrimaryButton)`
+  flex: 1;
+  padding: 0.875rem 1rem;
+`
+
+const StyledSecondaryButton = styled(SecondaryButton)`
+  flex: 1;
+  padding: 0.875rem 1rem;
+`
+
+interface AuthFormProps {
+  mode: 'login' | 'signup'
+  onModeToggle: () => void
+  onCancel?: () => void
+  cancelButtonText?: string
+}
+
+export default function AuthForm({
+  mode,
+  onModeToggle,
+  onCancel,
+  cancelButtonText = 'Cancel',
+}: AuthFormProps) {
+  const dispatch = useDispatch<AppDispatch>()
+  const authState = useSelector((state: RootState) => state.auth)
+
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [email, setEmail] = useState('')
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const handleLogIn = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!username.trim() || !password.trim()) {
+      setFormError('Enter your username and password.')
+      return
+    }
+
+    setFormError(null)
+    dispatch(logIn({ username: username.trim(), password: password.trim() }))
+  }
+
+  const handleSignUp = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!displayName.trim()) {
+      setFormError('Enter your display name.')
+      return
+    }
+    if (!username.trim()) {
+      setFormError('Enter a username.')
+      return
+    }
+    if (!password.trim()) {
+      setFormError('Enter a password.')
+      return
+    }
+
+    setFormError(null)
+    dispatch(
+      signUp({
+        displayName: displayName.trim(),
+        username: username.trim(),
+        email: email.trim() || null,
+        password: password.trim(),
+      })
+    )
+  }
+
+  const handleToggle = () => {
+    setFormError(null)
+    onModeToggle()
+  }
+
+  return (
+    <Form onSubmit={mode === 'login' ? handleLogIn : handleSignUp}>
+      {mode === 'signup' && (
+        <>
+          <FormSection>
+            <FormLabel htmlFor='auth-displayname'>Display Name</FormLabel>
+            <TextInput
+              id='auth-displayname'
+              type='text'
+              placeholder='John Doe'
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              autoComplete='name'
+            />
+          </FormSection>
+          <FormSection>
+            <FormLabel htmlFor='auth-email'>Email (Optional)</FormLabel>
+            <TextInput
+              id='auth-email'
+              type='email'
+              placeholder='john@example.com'
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete='email'
+            />
+          </FormSection>
+        </>
+      )}
+      <FormSection>
+        <FormLabel htmlFor='auth-username'>Username</FormLabel>
+        <TextInput
+          id='auth-username'
+          type='text'
+          placeholder={
+            mode === 'login' ? 'Enter username' : 'Choose a username'
+          }
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          autoComplete='username'
+        />
+      </FormSection>
+      <FormSection>
+        <FormLabel htmlFor='auth-password'>Password</FormLabel>
+        <TextInput
+          id='auth-password'
+          type='password'
+          placeholder={
+            mode === 'login' ? 'Enter password' : 'Create a password'
+          }
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+        />
+      </FormSection>
+      {(formError || authState.error) && (
+        <StyledErrorText>{formError || authState.error}</StyledErrorText>
+      )}
+      <ButtonContainer>
+        {onCancel && (
+          <StyledSecondaryButton type='button' onClick={onCancel}>
+            {cancelButtonText}
+          </StyledSecondaryButton>
+        )}
+        <StyledPrimaryButton
+          type='submit'
+          disabled={authState.isLoading}
+          style={onCancel ? {} : { flex: 1 }}
+        >
+          {authState.isLoading
+            ? mode === 'login'
+              ? 'Signing in…'
+              : 'Creating account…'
+            : mode === 'login'
+            ? 'Log In'
+            : 'Sign Up'}
+        </StyledPrimaryButton>
+      </ButtonContainer>
+    </Form>
+  )
+}
+
+export const AuthToggleSection = styled.div`
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  text-align: center;
+
+  @media (prefers-color-scheme: dark) {
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+`
+
+export const AuthToggleText = styled.p`
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
+`
+
+export const AuthToggleLink = styled.button`
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--accent-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-bottom-color: var(--accent-color);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    color: #a39dc9;
+
+    &:hover {
+      border-bottom-color: #a39dc9;
+    }
+  }
+`
