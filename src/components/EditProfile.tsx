@@ -16,11 +16,7 @@ import {
   HelperText,
   gradientTextStyle,
 } from './shared/StyledComponents'
-import AuthForm, {
-  AuthToggleSection,
-  AuthToggleText,
-  AuthToggleLink,
-} from './AuthForm'
+import AuthForm, { AuthToggleText, AuthToggleLink } from './AuthForm'
 
 const appear = keyframes`
   from {
@@ -389,11 +385,10 @@ const EditProfile = ({
           <>
             <AuthForm
               mode={authFormMode}
-              onModeToggle={toggleAuthFormMode}
               onCancel={switchToProfileView}
               cancelButtonText='Back'
             />
-            <AuthToggleSection>
+            <DisclaimerSection>
               <AuthToggleText>
                 {authFormMode === 'login' ? (
                   <>
@@ -411,7 +406,7 @@ const EditProfile = ({
                   </>
                 )}
               </AuthToggleText>
-            </AuthToggleSection>
+            </DisclaimerSection>
           </>
         ) : (
           <>
@@ -441,7 +436,6 @@ const EditProfile = ({
                 ))}
               </AvatarGrid>
             </FormSection>
-
             <ButtonContainer>
               <StyledCancelButton onClick={onDismiss}>
                 Cancel
@@ -460,14 +454,14 @@ const EditProfile = ({
             {error && <StyledErrorText>{error}</StyledErrorText>}
 
             {isFirstTimeUser && (
-              <AuthToggleSection>
+              <DisclaimerSection>
                 <AuthToggleText>
                   Already have an account?{' '}
                   <AuthToggleLink onClick={switchToAuthView}>
                     Sign in
                   </AuthToggleLink>
                 </AuthToggleText>
-              </AuthToggleSection>
+              </DisclaimerSection>
             )}
           </>
         )}

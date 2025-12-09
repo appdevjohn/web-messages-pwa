@@ -61,14 +61,12 @@ const StyledSecondaryButton = styled(SecondaryButton)`
 
 interface AuthFormProps {
   mode: 'login' | 'signup'
-  onModeToggle: () => void
   onCancel?: () => void
   cancelButtonText?: string
 }
 
 export default function AuthForm({
   mode,
-  onModeToggle,
   onCancel,
   cancelButtonText = 'Cancel',
 }: AuthFormProps) {
@@ -116,11 +114,6 @@ export default function AuthForm({
         password: password.trim(),
       })
     )
-  }
-
-  const handleToggle = () => {
-    setFormError(null)
-    onModeToggle()
   }
 
   return (
@@ -204,21 +197,12 @@ export default function AuthForm({
   )
 }
 
-export const AuthToggleSection = styled.div`
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  text-align: center;
-
-  @media (prefers-color-scheme: dark) {
-    border-top-color: rgba(255, 255, 255, 0.1);
-  }
-`
-
 export const AuthToggleText = styled.p`
   font-size: 0.9rem;
   color: #666;
   margin: 0;
+  margin-top: 0.5rem;
+  text-align: center;
 
   @media (prefers-color-scheme: dark) {
     color: #999;

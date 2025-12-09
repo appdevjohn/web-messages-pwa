@@ -54,7 +54,7 @@ export default function LoginSignup() {
   return (
     <>
       <AuthCard>
-        <AuthForm mode={formMode} onModeToggle={toggleFormMode} />
+        <AuthForm mode={formMode} />
       </AuthCard>
       <StyledHelperText>
         {formMode === 'login' ? (
