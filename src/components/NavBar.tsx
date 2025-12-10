@@ -78,7 +78,7 @@ const ProfileChip = styled.button`
   align-items: center;
   gap: 7px;
   height: 40px;
-  padding: 4px 12px 4px 4px;
+  padding: 4px 12px;
   border-radius: 20px;
   background: white;
   border: 2px solid rgba(0, 0, 0, 0.06);
@@ -95,6 +95,10 @@ const ProfileChip = styled.button`
 
   &:hover span {
     color: white;
+  }
+
+  &:hover img {
+    filter: invert(1);
   }
 
   &:hover path {
@@ -118,11 +122,11 @@ const ProfileChip = styled.button`
 `
 
 const ProfileAvatar = styled.img`
-  width: 32px;
-  height: 32px;
-  object-fit: cover;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
   background-color: transparent;
-  border-radius: 16px;
+  transition: filter 0.2s ease;
 `
 
 const ProfileName = styled.span`
