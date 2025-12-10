@@ -81,14 +81,13 @@ const ProfileChip = styled.button`
   padding: 4px 12px;
   border-radius: 20px;
   background: white;
-  border: 2px solid rgba(0, 0, 0, 0.06);
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
   &:hover {
     background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
-    border-color: transparent;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(64, 61, 88, 0.25);
   }
@@ -111,8 +110,11 @@ const ProfileChip = styled.button`
 
   @media (prefers-color-scheme: dark) {
     background: #2a2a2a;
-    border-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    img {
+      filter: invert(0.8);
+    }
 
     &:hover {
       background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
