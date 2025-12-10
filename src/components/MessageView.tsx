@@ -80,11 +80,11 @@ const BlockSenderName = styled.div`
 
 const View = styled.div<{ $margin?: string }>`
   width: 100%;
-  margin: ${(props) => props.$margin || '80px auto 92px auto'};
+  margin: ${(props) => props.$margin || '82px auto 92px auto'};
   max-width: 40rem;
 
   @media (min-width: 40rem) {
-    margin: ${(props) => props.$margin || '80px auto 124px auto'};
+    margin: ${(props) => props.$margin || '82px auto 124px auto'};
   }
 `
 
