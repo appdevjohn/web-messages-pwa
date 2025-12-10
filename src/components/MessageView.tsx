@@ -28,6 +28,7 @@ const TextBubble = styled.div<{ $highlighted?: boolean; $delivered?: boolean }>`
         ? 'var(--content-background)'
         : 'gray'};
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    color: #dcd8d3;
   }
 `
 
@@ -64,6 +65,10 @@ const BlockSenderImage = styled.div`
 
   @media (prefers-color-scheme: dark) {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    & img {
+      filter: brightness(0) invert(1) opacity(0.6);
+    }
   }
 `
 
