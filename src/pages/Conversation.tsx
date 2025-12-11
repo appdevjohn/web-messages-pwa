@@ -22,6 +22,8 @@ import {
   gradientTextStyle,
 } from '../components/shared/StyledComponents'
 
+const APP_NAME = import.meta.env.VITE_APP_NAME || 'Web Messages'
+
 const ErrorViewContainer = styled.div`
   margin: 6rem auto 0 auto;
   text-align: center;
@@ -177,7 +179,9 @@ function ShareChat() {
             {copySuccess ? '✓ Copied!' : 'Copy Link'}
           </StyledPrimaryButton>
           {canShare && (
-            <StyledSecondaryButton onClick={handleShare}>Share</StyledSecondaryButton>
+            <StyledSecondaryButton onClick={handleShare}>
+              Share
+            </StyledSecondaryButton>
           )}
         </ButtonGroup>
       </ShareChatCard>
@@ -274,6 +278,20 @@ export default function ConversationView() {
       })
     })
   }, [authUser?.profilePicURL, authUser?.displayName])
+
+  // Update page title when conversation name changes
+  useEffect(() => {
+    if (convoName) {
+      document.title = `${convoName} - ${APP_NAME}`
+    } else {
+      document.title = APP_NAME
+    }
+
+    // Reset title when component unmounts
+    return () => {
+      document.title = APP_NAME
+    }
+  }, [convoName])
 
   // Join conversation and fetch messages when connected.
   useEffect(() => {
