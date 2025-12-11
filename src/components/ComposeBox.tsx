@@ -12,13 +12,12 @@ const Container = styled(GlassmorphicContainer)<{ $active?: boolean }>`
   bottom: 0;
   left: 0;
   right: 0;
-  height: ${(props) =>
-    props.$active
-      ? 'height: 76px'
-      : 'calc(76px + env(safe-area-inset-bottom))'};
+  min-height: ${(props) =>
+    props.$active ? '76px' : 'calc(76px + env(safe-area-inset-bottom))'};
+  padding-bottom: env(safe-area-inset-bottom);
 
   @media (min-width: 40rem) {
-    height: 96px;
+    min-height: 96px;
   }
 `
 
@@ -35,44 +34,72 @@ const Content = styled.div<{ $uploadEnabled: boolean }>`
 const UploadButtonContainer = styled.div`
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
+  padding-bottom: 16px;
 `
 
 const ComposeArea = styled.div`
   display: flex;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-end;
   width: 100%;
-  height: 76px;
+  min-height: 76px;
   margin: auto;
   background-color: transparent;
+  padding-bottom: 16px;
 `
 
-export const ComposeInput = styled.input`
+export const ComposeInput = styled.textarea`
   appearance: none;
-  border: none;
-  height: 44px;
+  box-sizing: border-box;
   width: 100%;
-  border-radius: 44px;
-  background-color: var(--content-background);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  padding: 0 16px;
+  height: 44px;
+  min-height: 44px;
+  max-height: 200px;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
   font-size: 1rem;
-  text-align: left;
-  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.5;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+  cursor: text;
+  color: #222;
+  resize: none;
+  overflow-y: auto;
+  vertical-align: middle;
+
+  &::placeholder {
+    color: #999;
+  }
 
   &:focus {
     outline: none;
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.75);
-    transition: all 0.1s ease-out;
-  }
-
-  ::placeholder {
-    color: var(--placeholder-text-color);
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 16px rgba(64, 61, 88, 0.2),
+      0 0 0 4px rgba(64, 61, 88, 0.1);
+    transform: translateY(-1px);
   }
 
   @media (prefers-color-scheme: dark) {
-    color: black;
+    background-color: #2a2a2a;
+    color: white;
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+
+    &::placeholder {
+      color: #888;
+    }
+
+    &:focus {
+      background-color: #333;
+      border-color: #78729f;
+      box-shadow: 0 4px 16px rgba(120, 114, 159, 0.3),
+        0 0 0 4px rgba(120, 114, 159, 0.15);
+      transform: translateY(-1px);
+    }
   }
 `
 
@@ -97,8 +124,30 @@ const ComposeBox = ({
 }: ComposeBox) => {
   const [message, setMessage] = useState<string>('')
   const [active, setActive] = useState<boolean>(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const uploadRef = useRef<HTMLInputElement>(null)
+
+  const adjustTextareaHeight = () => {
+    const textarea = inputRef.current
+    if (textarea) {
+      // Set to auto to force accurate scrollHeight recalculation
+      textarea.style.height = 'auto'
+
+      // Get the accurate scrollHeight for current content
+      const scrollHeight = textarea.scrollHeight
+
+      // If content is empty or fits in one line, use minimum 44px
+      // Check both scrollHeight and if there are newlines in the content
+      const hasMultipleLines = message.includes('\n')
+      const needsExpansion = scrollHeight > 50 || hasMultipleLines
+
+      if (needsExpansion) {
+        textarea.style.height = `${Math.min(scrollHeight, 200)}px`
+      } else {
+        textarea.style.height = '44px'
+      }
+    }
+  }
 
   return (
     <Container $active={active}>
@@ -123,15 +172,26 @@ const ComposeBox = ({
         )}
         <ComposeArea>
           <ComposeInput
-            type='text'
+            rows={1}
             placeholder='Message'
             value={message}
-            onChange={(event) => setMessage(event.target.value)}
+            onChange={(event) => {
+              setMessage(event.target.value)
+              adjustTextareaHeight()
+            }}
             onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                sendMessage(message)
-                setMessage('')
-                inputRef.current && inputRef.current.focus()
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
+                if (message.trim()) {
+                  sendMessage(message)
+                  setMessage('')
+                  setTimeout(() => {
+                    if (inputRef.current) {
+                      inputRef.current.style.height = '44px'
+                    }
+                  }, 0)
+                  inputRef.current && inputRef.current.focus()
+                }
               }
             }}
             onFocus={() => {
