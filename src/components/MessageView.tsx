@@ -83,6 +83,16 @@ const BlockSenderName = styled.div`
   }
 `
 
+const BlockTimestamp = styled.span`
+  font-weight: 400;
+  color: #999;
+  margin-left: 6px;
+
+  @media (prefers-color-scheme: dark) {
+    color: #666;
+  }
+`
+
 const View = styled.div<{ $margin?: string }>`
   width: 100%;
   margin: ${(props) => props.$margin || '82px auto 92px auto'};
@@ -109,6 +119,7 @@ type BlockProps = {
   senderName: string
   senderIcon: string
   highlighted: boolean
+  timestamp: Date
   messages: { content: string; type: string; delivered: string; id: string }[]
 }
 
@@ -119,6 +130,14 @@ type ViewProps = {
   onLoadOlderMessages: () => void
   isLoadingOlderMessages: boolean
   margin?: string
+}
+
+const formatTime = (date: Date): string => {
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
 }
 
 const MessageBubble = ({
@@ -151,6 +170,7 @@ const MessageBlock = ({
   senderName,
   senderIcon,
   highlighted,
+  timestamp,
   messages,
 }: BlockProps) => {
   let messageBubbles = messages.map((message) => {
@@ -171,7 +191,10 @@ const MessageBlock = ({
         <img src={ICON_MAP[senderIcon]} alt='Profile' />
       </BlockSenderImage>
       <div>
-        <BlockSenderName>{senderName}</BlockSenderName>
+        <BlockSenderName>
+          {senderName}
+          <BlockTimestamp>{formatTime(timestamp)}</BlockTimestamp>
+        </BlockSenderName>
         {messageBubbles}
       </div>
     </Block>
@@ -234,6 +257,7 @@ const MessageView = ({
           <MessageBlock
             senderName={block.senderName}
             senderIcon={block.senderImg}
+            timestamp={block.messages[0].timestamp}
             messages={block.messages}
             highlighted={block.senderId === highlightId}
             key={JSON.stringify(block.messages)}
