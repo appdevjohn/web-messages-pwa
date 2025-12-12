@@ -12,13 +12,6 @@ const Container = styled(GlassmorphicContainer)<{ $active?: boolean }>`
   bottom: 0;
   left: 0;
   right: 0;
-  min-height: ${(props) =>
-    props.$active ? '76px' : 'calc(76px + env(safe-area-inset-bottom))'};
-  padding-bottom: env(safe-area-inset-bottom);
-
-  @media (min-width: 40rem) {
-    min-height: 96px;
-  }
 `
 
 const Content = styled.div<{ $uploadEnabled: boolean }>`
@@ -29,24 +22,22 @@ const Content = styled.div<{ $uploadEnabled: boolean }>`
   column-gap: 10px;
   max-width: 40rem;
   margin: auto;
+  padding: 1rem 0 1.5rem 0;
 `
 
 const UploadButtonContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  padding-bottom: 16px;
 `
 
 const ComposeArea = styled.div`
   display: flex;
   justify-content: flex-start;
-  align-items: flex-end;
+  align-items: center;
   width: 100%;
-  min-height: 76px;
   margin: auto;
   background-color: transparent;
-  padding-bottom: 16px;
 `
 
 export const ComposeInput = styled.textarea`

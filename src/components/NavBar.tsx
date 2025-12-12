@@ -18,6 +18,7 @@ const Container = styled(GlassmorphicContainer)`
   right: 0;
   padding: 1rem 1rem 1.25rem;
   border: 0;
+  z-index: 10;
 `
 
 const Content = styled.div`

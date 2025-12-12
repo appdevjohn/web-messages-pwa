@@ -429,7 +429,7 @@ export default function ConversationView() {
         ) : (
           <ComposeBox
             becameActive={() => {}}
-            disableUpload={true}
+            disableUpload={false}
             onUploadFile={() => {}}
             sendMessage={sendMessageHandler}
           />

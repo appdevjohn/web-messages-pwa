@@ -51,7 +51,7 @@ const Backdrop = styled.div`
   justify-content: center;
   align-items: center;
   padding: 1rem;
-  z-index: 2;
+  z-index: 100;
   animation: ${appear} 0.2s ease-out;
 
   @media (prefers-color-scheme: dark) {
