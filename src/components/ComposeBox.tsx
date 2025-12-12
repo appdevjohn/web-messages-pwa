@@ -3,7 +3,6 @@
 import { useRef, useState } from 'react'
 import styled from 'styled-components'
 
-import IconButton from './IconButton'
 import FileUploadSVG from '../assets/file-upload.svg?react'
 import { GlassmorphicContainer } from './shared/StyledComponents'
 
@@ -97,6 +96,52 @@ export const ComposeInput = styled.textarea`
 const FileUploadIcon = styled(FileUploadSVG)`
   path {
     fill: var(--accent-color);
+    transition: fill 0.2s ease;
+  }
+`
+
+const StyledUploadButton = styled.button`
+  display: inline-block;
+  height: 44px;
+  width: 44px;
+  border-radius: 12px;
+  border: none;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(64, 61, 88, 0.25);
+
+    path {
+      fill: white;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: #2a2a2a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
+      box-shadow: 0 4px 12px rgba(120, 114, 159, 0.3);
+
+      path {
+        fill: white;
+      }
+    }
   }
 `
 
@@ -152,13 +197,14 @@ const ComposeBox = ({
         />
         {!disableUpload && (
           <UploadButtonContainer>
-            <IconButton
-              icon={<FileUploadIcon style={{ transform: 'translateY(1px)' }} />}
+            <StyledUploadButton
               disabled={disableUpload}
               onClick={() => {
                 uploadRef.current && uploadRef.current.click()
               }}
-            />
+            >
+              <FileUploadIcon style={{ transform: 'translateY(1px)' }} />
+            </StyledUploadButton>
           </UploadButtonContainer>
         )}
         <ComposeArea>
