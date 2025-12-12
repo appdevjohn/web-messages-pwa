@@ -93,6 +93,20 @@ const BlockTimestamp = styled.span`
   }
 `
 
+const DateSeparator = styled.div`
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #999;
+  margin: 24px 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  @media (prefers-color-scheme: dark) {
+    color: #666;
+  }
+`
+
 const View = styled.div<{ $margin?: string }>`
   width: 100%;
   margin: ${(props) => props.$margin || '82px auto 92px auto'};
@@ -138,6 +152,32 @@ const formatTime = (date: Date): string => {
     minute: '2-digit',
     hour12: true,
   })
+}
+
+const isSameDay = (date1: Date, date2: Date): boolean => {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  )
+}
+
+const formatDateSeparator = (date: Date): string => {
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  if (isSameDay(date, today)) {
+    return 'Today'
+  } else if (isSameDay(date, yesterday)) {
+    return 'Yesterday'
+  } else {
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+    })
+  }
 }
 
 const MessageBubble = ({
@@ -214,7 +254,12 @@ const MessageView = ({
     .sort((a, b) => a.timestamp.valueOf() - b.timestamp.valueOf())
 
   // Consecutive messages sent from the same sender must be grouped together.
-  const messageBlocks = []
+  const messageBlocks: {
+    senderId: string
+    senderImg: string
+    senderName: string
+    messages: MessageType[]
+  }[] = []
   for (let i = 0; i < sortedMessages.length; i++) {
     const message = sortedMessages[i]
 
@@ -252,16 +297,27 @@ const MessageView = ({
           )}
         </ViewLoadMessagesButtonContainer>
       ) : null}
-      {messageBlocks.map((block) => {
+      {messageBlocks.map((block, index) => {
+        const currentDate = block.messages[0].timestamp
+        const previousDate =
+          index > 0 ? messageBlocks[index - 1].messages[0].timestamp : null
+
+        const showDateSeparator =
+          index === 0 || (previousDate && !isSameDay(currentDate, previousDate))
+
         return (
-          <MessageBlock
-            senderName={block.senderName}
-            senderIcon={block.senderImg}
-            timestamp={block.messages[0].timestamp}
-            messages={block.messages}
-            highlighted={block.senderId === highlightId}
-            key={JSON.stringify(block.messages)}
-          />
+          <div key={JSON.stringify(block.messages)}>
+            {showDateSeparator && (
+              <DateSeparator>{formatDateSeparator(currentDate)}</DateSeparator>
+            )}
+            <MessageBlock
+              senderName={block.senderName}
+              senderIcon={block.senderImg}
+              timestamp={block.messages[0].timestamp}
+              messages={block.messages}
+              highlighted={block.senderId === highlightId}
+            />
+          </div>
         )
       })}
     </View>
