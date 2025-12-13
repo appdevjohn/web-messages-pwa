@@ -302,11 +302,31 @@ export default function ConversationView() {
       setConvoName(payload.conversation['name'])
       setDeletionDate(new Date(payload.deletionDate))
     }
+    const onUserUpdated = (payload: any) => {
+      const updatedConvoId = payload.convoId
+      if (updatedConvoId !== convoId) return // Ignore updates for other conversations
+
+      const { userId, displayName, profilePicURL } = payload
+      setMessages((prevMessages) => {
+        return prevMessages.map((msg) => {
+          // Update messages from this user
+          if (msg.userId === userId) {
+            return {
+              ...msg,
+              userProfilePic: profilePicURL,
+              userFullName: displayName,
+            }
+          }
+          return msg
+        })
+      })
+    }
 
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
     socket.on('message-created', onMessageCreated)
     socket.on('conversation-updated', onConversationUpdated)
+    socket.on('user-updated', onUserUpdated)
 
     // Check current state after setting up listeners to avoid race condition
     if (socket.connected) {
@@ -318,6 +338,7 @@ export default function ConversationView() {
       socket.off('disconnect', onDisconnect)
       socket.off('message-created', onMessageCreated)
       socket.off('conversation-updated', onConversationUpdated)
+      socket.off('user-updated', onUserUpdated)
     }
   }, [])
 
