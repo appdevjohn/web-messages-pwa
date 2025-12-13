@@ -3,7 +3,6 @@
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
-import IconButton from './IconButton'
 import CloseSVG from '../assets/close.svg?react'
 import ICON_MAP from '../util/profileIcons'
 import {
@@ -183,6 +182,49 @@ const IdentityBadge = styled.span`
   }
 `
 
+const CloseButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(64, 61, 88, 0.25);
+  }
+
+  &:hover path {
+    fill: white;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: #2a2a2a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    &:hover {
+      background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
+      box-shadow: 0 4px 12px rgba(120, 114, 159, 0.3);
+    }
+  }
+`
+
 type NavBar = {
   title: string
   subtitle?: string
@@ -226,11 +268,9 @@ const NavBar = ({
               <ChevronIcon>›</ChevronIcon>
             </ProfileChip>
           )}
-          <IconButton
-            icon={<CloseIcon />}
-            onClick={() => navigate('/')}
-            hasBorders={false}
-          />
+          <CloseButton onClick={() => navigate('/')} title="Go to Home">
+            <CloseIcon />
+          </CloseButton>
         </div>
       </Content>
     </Container>
