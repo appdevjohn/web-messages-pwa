@@ -187,7 +187,6 @@ type NavBar = {
   title: string
   subtitle?: string
   onUserClick: () => void
-  disableEditProfile: boolean
   userName?: string
   userAvatar?: string
   isAnonymous?: boolean
@@ -197,7 +196,6 @@ const NavBar = ({
   title = '',
   subtitle,
   onUserClick,
-  disableEditProfile = false,
   userName,
   userAvatar,
   isAnonymous = false,
@@ -213,7 +211,7 @@ const NavBar = ({
           {subtitle && <Subtitle>⏱ {subtitle}</Subtitle>}
         </TitleStack>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {!disableEditProfile && userName && avatarSrc && (
+          {userName && avatarSrc && (
             <ProfileChip
               onClick={onUserClick}
               title={

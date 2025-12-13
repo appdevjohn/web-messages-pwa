@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react'
 import { useSelector } from 'react-redux'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { MessageType } from '../types'
@@ -53,10 +53,16 @@ const ErrorViewMessage = styled.div`
   font-weight: 400;
   color: #666;
   line-height: 1.5;
+  margin-bottom: 2rem;
 
   @media (prefers-color-scheme: dark) {
     color: #999;
   }
+`
+
+const ErrorViewButton = styled(PrimaryButton)`
+  max-width: 12rem;
+  margin: 0 auto;
 `
 
 const ShareChatContainer = styled.div`
@@ -127,13 +133,22 @@ const StyledSecondaryButton = styled(SecondaryButton)`
   flex: 1;
 `
 
-function ErrorView({ title, message }: { title: string; message: string }) {
+function ErrorView({
+  title,
+  message,
+  onBackClick,
+}: {
+  title: string
+  message: string
+  onBackClick: () => void
+}) {
   return (
     <ErrorViewContainer>
       <ErrorCard>
         <ErrorIcon>🔍</ErrorIcon>
         <ErrorViewTitle>{title}</ErrorViewTitle>
         <ErrorViewMessage>{message}</ErrorViewMessage>
+        <ErrorViewButton onClick={onBackClick}>Go to Home</ErrorViewButton>
       </ErrorCard>
     </ErrorViewContainer>
   )
@@ -190,6 +205,7 @@ function ShareChat() {
 }
 
 export default function ConversationView() {
+  const navigate = useNavigate()
   const { convoId } = useParams()
   const { user: authUser, accessToken } = useSelector(
     (state: RootState) => state.auth
@@ -374,6 +390,17 @@ export default function ConversationView() {
     )
   }
 
+  // If chat doesn't exist, show only the error view
+  if (doesChatExist === false) {
+    return (
+      <ErrorView
+        title={"This is not the converation you're looking for."}
+        message={'This chat has either expired or never existed.'}
+        onBackClick={() => navigate('/')}
+      />
+    )
+  }
+
   return (
     <>
       {shouldEditUser && (
@@ -388,13 +415,7 @@ export default function ConversationView() {
       )}
       <div>
         <NavBar
-          title={
-            doesChatExist === undefined
-              ? 'Loading...'
-              : doesChatExist
-              ? convoName
-              : ''
-          }
+          title={doesChatExist === undefined ? 'Loading...' : convoName}
           subtitle={
             doesChatExist
               ? `${daysRemaining} ${
@@ -403,17 +424,11 @@ export default function ConversationView() {
               : undefined
           }
           onUserClick={() => setShouldEditUser(true)}
-          disableEditProfile={!doesChatExist}
           userName={authUser?.displayName || user.name}
           userAvatar={authUser?.profilePicURL || user.avatar}
           isAnonymous={!authUser}
         />
-        {doesChatExist === false ? (
-          <ErrorView
-            title={"This is not the converation you're looking for."}
-            message={'This chat has either expired or never existed.'}
-          />
-        ) : messages.length === 0 ? (
+        {messages.length === 0 ? (
           <ShareChat />
         ) : (
           <MessageView
