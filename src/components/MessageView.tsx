@@ -180,6 +180,28 @@ const formatDateSeparator = (date: Date): string => {
   }
 }
 
+const linkifyText = (text: string): React.ReactNode => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  const parts = text.split(urlRegex)
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target='_blank'
+          rel='noopener noreferrer'
+          style={{ color: 'inherit', textDecoration: 'underline' }}
+        >
+          {part}
+        </a>
+      )
+    }
+    return part
+  })
+}
+
 const MessageBubble = ({
   type, // 'text', 'image'
   highlighted,
@@ -199,7 +221,7 @@ const MessageBubble = ({
           $highlighted={highlighted}
           $delivered={delivered == 'delivered'}
         >
-          {content}
+          {linkifyText(content)}
         </TextBubble>
       </div>
     )
