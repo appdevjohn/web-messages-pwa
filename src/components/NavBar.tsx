@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import CloseSVG from '../assets/close.svg?react'
+import BellSVG from '../assets/bell.svg?react'
 import ICON_MAP from '../util/profileIcons'
 import {
   GlassmorphicContainer,
@@ -64,6 +65,16 @@ const Subtitle = styled.div`
 `
 
 const CloseIcon = styled(CloseSVG)`
+  path {
+    fill: var(--accent-color);
+
+    @media (prefers-color-scheme: dark) {
+      fill: white;
+    }
+  }
+`
+
+const BellIcon = styled(BellSVG)`
   path {
     fill: var(--accent-color);
 
@@ -275,7 +286,7 @@ const NavBar = ({
               onClick={onNotificationToggle}
               title='Toggle Notifications'
             >
-              🔔
+              <BellIcon />
             </NavBarButton>
           )}
           <NavBarButton onClick={() => navigate('/')} title='Go to Home'>
