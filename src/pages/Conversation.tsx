@@ -133,6 +133,45 @@ const StyledSecondaryButton = styled(SecondaryButton)`
   flex: 1;
 `
 
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  width: 100%;
+`
+
+const LoadingSpinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    border-color: rgba(255, 255, 255, 0.1);
+    border-top-color: #667eea;
+  }
+`
+
+const LoadingText = styled.div`
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: #666;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
+`
+
 function ErrorView({
   title,
   message,
@@ -204,6 +243,15 @@ function ShareChat() {
   )
 }
 
+function LoadingIndicator() {
+  return (
+    <LoadingContainer>
+      <LoadingSpinner />
+      <LoadingText>Loading messages...</LoadingText>
+    </LoadingContainer>
+  )
+}
+
 export default function ConversationView() {
   const navigate = useNavigate()
   const { convoId } = useParams()
@@ -217,6 +265,8 @@ export default function ConversationView() {
   const [convoName, setConvoName] = useState('')
   const [deletionDate, setDeletionDate] = useState<Date>()
   const [messages, setMessages] = useState<MessageType[]>([])
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true)
+  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false)
   const [doesChatExist, setDoesChatExist] = useState<boolean>()
   const daysRemaining = deletionDate
     ? getDaysRemaining(new Date(), deletionDate)
@@ -309,9 +359,27 @@ export default function ConversationView() {
     }
   }, [convoName])
 
+  // Show loading indicator only if loading takes more than 500ms
+  useEffect(() => {
+    if (!isLoadingMessages) {
+      setShowLoadingIndicator(false)
+      return
+    }
+
+    const timer = setTimeout(() => {
+      setShowLoadingIndicator(true)
+    }, 500)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [isLoadingMessages])
+
   // Join conversation and fetch messages when connected.
   useEffect(() => {
     if (!isSocketConnected || !convoId) return
+
+    setIsLoadingMessages(true)
 
     // Join the conversation room to receive real-time updates
     socket.emit('join-conversation', { convoId }, (response: any) => {
@@ -323,6 +391,7 @@ export default function ConversationView() {
           Joining a room only means you want to listen for updates to that room,
           it does not validate the room's existence.
         */
+        setIsLoadingMessages(false)
         console.error('Failed to join conversation:', response.error)
         return
       }
@@ -333,6 +402,7 @@ export default function ConversationView() {
           if (response.error?.includes('no conversation')) {
             setDoesChatExist(false)
           }
+          setIsLoadingMessages(false)
           console.error('Failed to fetch messages:', response.error)
           return
         }
@@ -350,6 +420,7 @@ export default function ConversationView() {
             delivered: 'delivered',
           })
         )
+        setIsLoadingMessages(false)
         setMessages(parsedMessages)
         setConvoName(response.data.conversation['name'])
         setDeletionDate(new Date(response.data.deletionDate))
@@ -428,7 +499,9 @@ export default function ConversationView() {
           userAvatar={authUser?.profilePicURL || user.avatar}
           isAnonymous={!authUser}
         />
-        {messages.length === 0 ? (
+        {showLoadingIndicator ? (
+          <LoadingIndicator />
+        ) : messages.length === 0 && !isLoadingMessages ? (
           <ShareChat />
         ) : (
           <MessageView
