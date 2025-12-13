@@ -381,7 +381,7 @@ export default function ConversationView() {
       socket.off('conversation-updated', onConversationUpdated)
       socket.off('user-updated', onUserUpdated)
     }
-  }, [])
+  }, [convoId, authUser, user, convoName])
 
   // Scroll to bottom of page when new messages roll in.
   useEffect(() => {
