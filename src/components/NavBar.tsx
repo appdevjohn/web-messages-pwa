@@ -182,7 +182,7 @@ const IdentityBadge = styled.span`
   }
 `
 
-const CloseButton = styled.button`
+const NavBarButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -232,6 +232,7 @@ type NavBar = {
   userName?: string
   userAvatar?: string
   isAnonymous?: boolean
+  onNotificationToggle?: () => void
 }
 
 const NavBar = ({
@@ -241,6 +242,7 @@ const NavBar = ({
   userName,
   userAvatar,
   isAnonymous = false,
+  onNotificationToggle,
 }: NavBar) => {
   const navigate = useNavigate()
   const avatarSrc = userAvatar ? ICON_MAP[userAvatar] : undefined
@@ -268,9 +270,17 @@ const NavBar = ({
               <ChevronIcon>›</ChevronIcon>
             </ProfileChip>
           )}
-          <CloseButton onClick={() => navigate('/')} title="Go to Home">
+          {onNotificationToggle && (
+            <NavBarButton
+              onClick={onNotificationToggle}
+              title='Toggle Notifications'
+            >
+              🔔
+            </NavBarButton>
+          )}
+          <NavBarButton onClick={() => navigate('/')} title='Go to Home'>
             <CloseIcon />
-          </CloseButton>
+          </NavBarButton>
         </div>
       </Content>
     </Container>

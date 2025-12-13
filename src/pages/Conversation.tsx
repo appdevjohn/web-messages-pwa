@@ -7,6 +7,7 @@ import { MessageType } from '../types'
 import getDaysRemaining from '../util/daysRemaining'
 import socket from '../util/socket'
 import UserContext from '../util/userContext'
+import ICON_MAP from '../util/profileIcons'
 import MessageView from '../components/MessageView'
 import NavBar from '../components/NavBar'
 import ComposeBox from '../components/ComposeBox'
@@ -172,6 +173,12 @@ const LoadingText = styled.div`
   }
 `
 
+const sendNotification = (title: string, options?: NotificationOptions) => {
+  if (Notification.permission === 'granted') {
+    new Notification(title, options)
+  }
+}
+
 function ErrorView({
   title,
   message,
@@ -268,9 +275,24 @@ export default function ConversationView() {
   const [isLoadingMessages, setIsLoadingMessages] = useState(true)
   const [showLoadingIndicator, setShowLoadingIndicator] = useState(false)
   const [doesChatExist, setDoesChatExist] = useState<boolean>()
+  const [showNotificationButton, setShowNotificationButton] = useState(
+    'Notification' in window && Notification.permission === 'default'
+  )
   const daysRemaining = deletionDate
     ? getDaysRemaining(new Date(), deletionDate)
     : undefined
+
+  const handleNotificationToggle = () => {
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        new Notification('Notifications Enabled', {
+          body: 'You will receive notifications for new messages!',
+        })
+      }
+      // Hide button after user makes a decision (granted or denied)
+      setShowNotificationButton(false)
+    })
+  }
 
   // Handle WebSocket events.
   useEffect(() => {
@@ -281,13 +303,32 @@ export default function ConversationView() {
       if (newMessageConvoId !== convoId) return // Ignore messages for other conversations
 
       const newMessage = payload.message
+      const messageSenderId =
+        newMessage['senderId'] ||
+        `${newMessage['senderName']}-${newMessage['senderAvatar']}`
+      const currentUserId = authUser?.id || `${user.name}-${user.avatar}`
+
+      // Show notification if message is from another user and page is in background or not focused
+      const shouldNotify =
+        messageSenderId !== currentUserId &&
+        (!document.hasFocus() || document.hidden)
+
+      if (shouldNotify) {
+        const avatarIcon = newMessage['senderAvatar']
+          ? ICON_MAP[newMessage['senderAvatar']] || newMessage['senderAvatar']
+          : undefined
+
+        sendNotification(`${newMessage['senderName']} in ${convoName}`, {
+          body: newMessage['content'],
+          icon: avatarIcon,
+        })
+      }
+
       setMessages((msgs) => {
         const messagesCopy = msgs.map((m) => ({ ...m }))
         messagesCopy.push({
           id: newMessage['id'],
-          userId:
-            newMessage['senderId'] ||
-            `${newMessage['senderName']}-${newMessage['senderAvatar']}`,
+          userId: messageSenderId,
           timestamp: new Date(newMessage['createdAt']),
           content: newMessage['content'],
           type: newMessage['type'],
@@ -519,6 +560,9 @@ export default function ConversationView() {
           userName={authUser?.displayName || user.name}
           userAvatar={authUser?.profilePicURL || user.avatar}
           isAnonymous={!authUser}
+          onNotificationToggle={
+            showNotificationButton ? handleNotificationToggle : undefined
+          }
         />
         {showLoadingIndicator ? (
           <LoadingIndicator />
