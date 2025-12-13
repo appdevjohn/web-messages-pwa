@@ -174,7 +174,7 @@ const LoadingText = styled.div`
 `
 
 const sendNotification = (title: string, options?: NotificationOptions) => {
-  if (Notification.permission === 'granted') {
+  if ('Notification' in window && Notification.permission === 'granted') {
     new Notification(title, options)
   }
 }
@@ -283,6 +283,8 @@ export default function ConversationView() {
     : undefined
 
   const handleNotificationToggle = () => {
+    if (!('Notification' in window)) return
+
     Notification.requestPermission().then((permission) => {
       if (permission === 'granted') {
         new Notification('Notifications Enabled', {
