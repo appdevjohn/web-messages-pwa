@@ -362,12 +362,23 @@ export default function ConversationView() {
         })
       })
     }
+    const onConversationDeleted = (payload: any) => {
+      const deletedConvoId = payload.convoId
+      if (deletedConvoId !== convoId) return // Ignore deletions for other conversations
+
+      // Clear conversation state
+      setMessages([])
+      setConvoName('')
+      setDeletionDate(undefined)
+      setDoesChatExist(false)
+    }
 
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
     socket.on('message-created', onMessageCreated)
     socket.on('conversation-updated', onConversationUpdated)
     socket.on('user-updated', onUserUpdated)
+    socket.on('conversation-deleted', onConversationDeleted)
 
     // Check current state after setting up listeners to avoid race condition
     if (socket.connected) {
@@ -380,6 +391,7 @@ export default function ConversationView() {
       socket.off('message-created', onMessageCreated)
       socket.off('conversation-updated', onConversationUpdated)
       socket.off('user-updated', onUserUpdated)
+      socket.off('conversation-deleted', onConversationDeleted)
     }
   }, [convoId, authUser, user, convoName])
 
