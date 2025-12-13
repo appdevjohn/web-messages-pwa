@@ -28,6 +28,7 @@ const TextBubble = styled.div<{ $highlighted?: boolean; $delivered?: boolean }>`
         ? 'var(--content-background)'
         : 'gray'};
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    color: #dcd8d3;
   }
 `
 
@@ -64,6 +65,10 @@ const BlockSenderImage = styled.div`
 
   @media (prefers-color-scheme: dark) {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    & img {
+      filter: brightness(0) invert(1) opacity(0.6);
+    }
   }
 `
 
@@ -78,13 +83,37 @@ const BlockSenderName = styled.div`
   }
 `
 
+const BlockTimestamp = styled.span`
+  font-weight: 400;
+  color: #999;
+  margin-left: 6px;
+
+  @media (prefers-color-scheme: dark) {
+    color: #666;
+  }
+`
+
+const DateSeparator = styled.div`
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #999;
+  margin: 24px 0 16px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  @media (prefers-color-scheme: dark) {
+    color: #666;
+  }
+`
+
 const View = styled.div<{ $margin?: string }>`
   width: 100%;
-  margin: ${(props) => props.$margin || '80px auto 92px auto'};
+  margin: ${(props) => props.$margin || '82px auto 92px auto'};
   max-width: 40rem;
 
   @media (min-width: 40rem) {
-    margin: ${(props) => props.$margin || '80px auto 124px auto'};
+    margin: ${(props) => props.$margin || '82px auto 124px auto'};
   }
 `
 
@@ -104,6 +133,7 @@ type BlockProps = {
   senderName: string
   senderIcon: string
   highlighted: boolean
+  timestamp: Date
   messages: { content: string; type: string; delivered: string; id: string }[]
 }
 
@@ -114,6 +144,62 @@ type ViewProps = {
   onLoadOlderMessages: () => void
   isLoadingOlderMessages: boolean
   margin?: string
+}
+
+const formatTime = (date: Date): string => {
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
+const isSameDay = (date1: Date, date2: Date): boolean => {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  )
+}
+
+const formatDateSeparator = (date: Date): string => {
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  if (isSameDay(date, today)) {
+    return 'Today'
+  } else if (isSameDay(date, yesterday)) {
+    return 'Yesterday'
+  } else {
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined,
+    })
+  }
+}
+
+const linkifyText = (text: string): React.ReactNode => {
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  const parts = text.split(urlRegex)
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target='_blank'
+          rel='noopener noreferrer'
+          style={{ color: 'inherit', textDecoration: 'underline' }}
+        >
+          {part}
+        </a>
+      )
+    }
+    return part
+  })
 }
 
 const MessageBubble = ({
@@ -135,7 +221,7 @@ const MessageBubble = ({
           $highlighted={highlighted}
           $delivered={delivered == 'delivered'}
         >
-          {content}
+          {linkifyText(content)}
         </TextBubble>
       </div>
     )
@@ -146,6 +232,7 @@ const MessageBlock = ({
   senderName,
   senderIcon,
   highlighted,
+  timestamp,
   messages,
 }: BlockProps) => {
   let messageBubbles = messages.map((message) => {
@@ -166,7 +253,10 @@ const MessageBlock = ({
         <img src={ICON_MAP[senderIcon]} alt='Profile' />
       </BlockSenderImage>
       <div>
-        <BlockSenderName>{senderName}</BlockSenderName>
+        <BlockSenderName>
+          {senderName}
+          <BlockTimestamp>{formatTime(timestamp)}</BlockTimestamp>
+        </BlockSenderName>
         {messageBubbles}
       </div>
     </Block>
@@ -186,7 +276,12 @@ const MessageView = ({
     .sort((a, b) => a.timestamp.valueOf() - b.timestamp.valueOf())
 
   // Consecutive messages sent from the same sender must be grouped together.
-  const messageBlocks = []
+  const messageBlocks: {
+    senderId: string
+    senderImg: string
+    senderName: string
+    messages: MessageType[]
+  }[] = []
   for (let i = 0; i < sortedMessages.length; i++) {
     const message = sortedMessages[i]
 
@@ -224,15 +319,27 @@ const MessageView = ({
           )}
         </ViewLoadMessagesButtonContainer>
       ) : null}
-      {messageBlocks.map((block) => {
+      {messageBlocks.map((block, index) => {
+        const currentDate = block.messages[0].timestamp
+        const previousDate =
+          index > 0 ? messageBlocks[index - 1].messages[0].timestamp : null
+
+        const showDateSeparator =
+          index === 0 || (previousDate && !isSameDay(currentDate, previousDate))
+
         return (
-          <MessageBlock
-            senderName={block.senderName}
-            senderIcon={block.senderImg}
-            messages={block.messages}
-            highlighted={block.senderId === highlightId}
-            key={JSON.stringify(block.messages)}
-          />
+          <div key={JSON.stringify(block.messages)}>
+            {showDateSeparator && (
+              <DateSeparator>{formatDateSeparator(currentDate)}</DateSeparator>
+            )}
+            <MessageBlock
+              senderName={block.senderName}
+              senderIcon={block.senderImg}
+              timestamp={block.messages[0].timestamp}
+              messages={block.messages}
+              highlighted={block.senderId === highlightId}
+            />
+          </div>
         )
       })}
     </View>

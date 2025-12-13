@@ -3,8 +3,8 @@
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
-import IconButton from './IconButton'
 import CloseSVG from '../assets/close.svg?react'
+import BellSVG from '../assets/bell.svg?react'
 import ICON_MAP from '../util/profileIcons'
 import {
   GlassmorphicContainer,
@@ -18,6 +18,7 @@ const Container = styled(GlassmorphicContainer)`
   right: 0;
   padding: 1rem 1rem 1.25rem;
   border: 0;
+  z-index: 10;
 `
 
 const Content = styled.div`
@@ -73,28 +74,41 @@ const CloseIcon = styled(CloseSVG)`
   }
 `
 
+const BellIcon = styled(BellSVG)`
+  path {
+    fill: var(--accent-color);
+
+    @media (prefers-color-scheme: dark) {
+      fill: white;
+    }
+  }
+`
+
 const ProfileChip = styled.button`
   display: flex;
   align-items: center;
   gap: 7px;
   height: 40px;
-  padding: 4px 12px 4px 4px;
+  padding: 4px 12px;
   border-radius: 20px;
   background: white;
-  border: 2px solid rgba(0, 0, 0, 0.06);
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
   &:hover {
     background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
-    border-color: transparent;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(64, 61, 88, 0.25);
   }
 
   &:hover span {
     color: white;
+  }
+
+  &:hover img {
+    filter: invert(1);
   }
 
   &:hover path {
@@ -107,8 +121,11 @@ const ProfileChip = styled.button`
 
   @media (prefers-color-scheme: dark) {
     background: #2a2a2a;
-    border-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    img {
+      filter: invert(0.8);
+    }
 
     &:hover {
       background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
@@ -118,11 +135,11 @@ const ProfileChip = styled.button`
 `
 
 const ProfileAvatar = styled.img`
-  width: 32px;
-  height: 32px;
-  object-fit: cover;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
   background-color: transparent;
-  border-radius: 16px;
+  transition: filter 0.2s ease;
 `
 
 const ProfileName = styled.span`
@@ -176,24 +193,67 @@ const IdentityBadge = styled.span`
   }
 `
 
+const NavBarButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(64, 61, 88, 0.25);
+  }
+
+  &:hover path {
+    fill: white;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    background: #2a2a2a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+    &:hover {
+      background: linear-gradient(135deg, #78729f 0%, #5a5479 100%);
+      box-shadow: 0 4px 12px rgba(120, 114, 159, 0.3);
+    }
+  }
+`
+
 type NavBar = {
   title: string
   subtitle?: string
   onUserClick: () => void
-  disableEditProfile: boolean
   userName?: string
   userAvatar?: string
   isAnonymous?: boolean
+  onNotificationToggle?: () => void
 }
 
 const NavBar = ({
   title = '',
   subtitle,
   onUserClick,
-  disableEditProfile = false,
   userName,
   userAvatar,
   isAnonymous = false,
+  onNotificationToggle,
 }: NavBar) => {
   const navigate = useNavigate()
   const avatarSrc = userAvatar ? ICON_MAP[userAvatar] : undefined
@@ -206,7 +266,7 @@ const NavBar = ({
           {subtitle && <Subtitle>⏱ {subtitle}</Subtitle>}
         </TitleStack>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {!disableEditProfile && userName && avatarSrc && (
+          {userName && avatarSrc && (
             <ProfileChip
               onClick={onUserClick}
               title={
@@ -221,11 +281,17 @@ const NavBar = ({
               <ChevronIcon>›</ChevronIcon>
             </ProfileChip>
           )}
-          <IconButton
-            icon={<CloseIcon />}
-            onClick={() => navigate('/')}
-            hasBorders={false}
-          />
+          {onNotificationToggle && (
+            <NavBarButton
+              onClick={onNotificationToggle}
+              title='Toggle Notifications'
+            >
+              <BellIcon />
+            </NavBarButton>
+          )}
+          <NavBarButton onClick={() => navigate('/')} title='Go to Home'>
+            <CloseIcon />
+          </NavBarButton>
         </div>
       </Content>
     </Container>

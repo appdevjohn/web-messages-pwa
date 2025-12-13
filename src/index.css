@@ -18,6 +18,7 @@
 
     @media (prefers-color-scheme: dark) {
         --accent-color: #78729f;
+        --content-background: #2a2a2a;
         --page-background: #1a1a1a;
     }
 }

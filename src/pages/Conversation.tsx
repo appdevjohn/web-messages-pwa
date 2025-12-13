@@ -1,12 +1,13 @@
 import { useState, useEffect, useContext } from 'react'
 import { useSelector } from 'react-redux'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
 import { MessageType } from '../types'
 import getDaysRemaining from '../util/daysRemaining'
 import socket from '../util/socket'
 import UserContext from '../util/userContext'
+import ICON_MAP from '../util/profileIcons'
 import MessageView from '../components/MessageView'
 import NavBar from '../components/NavBar'
 import ComposeBox from '../components/ComposeBox'
@@ -21,6 +22,8 @@ import {
   LinkDisplayContainer,
   gradientTextStyle,
 } from '../components/shared/StyledComponents'
+
+const APP_NAME = import.meta.env.VITE_APP_NAME || 'Web Messages'
 
 const ErrorViewContainer = styled.div`
   margin: 6rem auto 0 auto;
@@ -51,10 +54,16 @@ const ErrorViewMessage = styled.div`
   font-weight: 400;
   color: #666;
   line-height: 1.5;
+  margin-bottom: 2rem;
 
   @media (prefers-color-scheme: dark) {
     color: #999;
   }
+`
+
+const ErrorViewButton = styled(PrimaryButton)`
+  max-width: 12rem;
+  margin: 0 auto;
 `
 
 const ShareChatContainer = styled.div`
@@ -125,13 +134,67 @@ const StyledSecondaryButton = styled(SecondaryButton)`
   flex: 1;
 `
 
-function ErrorView({ title, message }: { title: string; message: string }) {
+const LoadingContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  width: 100%;
+`
+
+const LoadingSpinner = styled.div`
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    border-color: rgba(255, 255, 255, 0.1);
+    border-top-color: #667eea;
+  }
+`
+
+const LoadingText = styled.div`
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: #666;
+
+  @media (prefers-color-scheme: dark) {
+    color: #999;
+  }
+`
+
+const sendNotification = (title: string, options?: NotificationOptions) => {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, options)
+  }
+}
+
+function ErrorView({
+  title,
+  message,
+  onBackClick,
+}: {
+  title: string
+  message: string
+  onBackClick: () => void
+}) {
   return (
     <ErrorViewContainer>
       <ErrorCard>
         <ErrorIcon>🔍</ErrorIcon>
         <ErrorViewTitle>{title}</ErrorViewTitle>
         <ErrorViewMessage>{message}</ErrorViewMessage>
+        <ErrorViewButton onClick={onBackClick}>Go to Home</ErrorViewButton>
       </ErrorCard>
     </ErrorViewContainer>
   )
@@ -177,7 +240,9 @@ function ShareChat() {
             {copySuccess ? '✓ Copied!' : 'Copy Link'}
           </StyledPrimaryButton>
           {canShare && (
-            <StyledSecondaryButton onClick={handleShare}>Share</StyledSecondaryButton>
+            <StyledSecondaryButton onClick={handleShare}>
+              Share
+            </StyledSecondaryButton>
           )}
         </ButtonGroup>
       </ShareChatCard>
@@ -185,7 +250,17 @@ function ShareChat() {
   )
 }
 
+function LoadingIndicator() {
+  return (
+    <LoadingContainer>
+      <LoadingSpinner />
+      <LoadingText>Loading messages...</LoadingText>
+    </LoadingContainer>
+  )
+}
+
 export default function ConversationView() {
+  const navigate = useNavigate()
   const { convoId } = useParams()
   const { user: authUser, accessToken } = useSelector(
     (state: RootState) => state.auth
@@ -197,10 +272,29 @@ export default function ConversationView() {
   const [convoName, setConvoName] = useState('')
   const [deletionDate, setDeletionDate] = useState<Date>()
   const [messages, setMessages] = useState<MessageType[]>([])
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true)
+  const [showLoadingIndicator, setShowLoadingIndicator] = useState(false)
   const [doesChatExist, setDoesChatExist] = useState<boolean>()
+  const [showNotificationButton, setShowNotificationButton] = useState(
+    'Notification' in window && Notification.permission === 'default'
+  )
   const daysRemaining = deletionDate
     ? getDaysRemaining(new Date(), deletionDate)
     : undefined
+
+  const handleNotificationToggle = () => {
+    if (!('Notification' in window)) return
+
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        new Notification('Notifications Enabled', {
+          body: 'You will receive notifications for new messages!',
+        })
+      }
+      // Hide button after user makes a decision (granted or denied)
+      setShowNotificationButton(false)
+    })
+  }
 
   // Handle WebSocket events.
   useEffect(() => {
@@ -211,13 +305,32 @@ export default function ConversationView() {
       if (newMessageConvoId !== convoId) return // Ignore messages for other conversations
 
       const newMessage = payload.message
+      const messageSenderId =
+        newMessage['senderId'] ||
+        `${newMessage['senderName']}-${newMessage['senderAvatar']}`
+      const currentUserId = authUser?.id || `${user.name}-${user.avatar}`
+
+      // Show notification if message is from another user and page is in background or not focused
+      const shouldNotify =
+        messageSenderId !== currentUserId &&
+        (!document.hasFocus() || document.hidden)
+
+      if (shouldNotify) {
+        const avatarIcon = newMessage['senderAvatar']
+          ? ICON_MAP[newMessage['senderAvatar']] || newMessage['senderAvatar']
+          : undefined
+
+        sendNotification(`${newMessage['senderName']} in ${convoName}`, {
+          body: newMessage['content'],
+          icon: avatarIcon,
+        })
+      }
+
       setMessages((msgs) => {
         const messagesCopy = msgs.map((m) => ({ ...m }))
         messagesCopy.push({
           id: newMessage['id'],
-          userId:
-            newMessage['senderId'] ||
-            `${newMessage['senderName']}-${newMessage['senderAvatar']}`,
+          userId: messageSenderId,
           timestamp: new Date(newMessage['createdAt']),
           content: newMessage['content'],
           type: newMessage['type'],
@@ -232,11 +345,42 @@ export default function ConversationView() {
       setConvoName(payload.conversation['name'])
       setDeletionDate(new Date(payload.deletionDate))
     }
+    const onUserUpdated = (payload: any) => {
+      const updatedConvoId = payload.convoId
+      if (updatedConvoId !== convoId) return // Ignore updates for other conversations
+
+      const { userId, displayName, profilePicURL } = payload
+      setMessages((prevMessages) => {
+        return prevMessages.map((msg) => {
+          // Update messages from this user
+          if (msg.userId === userId) {
+            return {
+              ...msg,
+              userProfilePic: profilePicURL,
+              userFullName: displayName,
+            }
+          }
+          return msg
+        })
+      })
+    }
+    const onConversationDeleted = (payload: any) => {
+      const deletedConvoId = payload.convoId
+      if (deletedConvoId !== convoId) return // Ignore deletions for other conversations
+
+      // Clear conversation state
+      setMessages([])
+      setConvoName('')
+      setDeletionDate(undefined)
+      setDoesChatExist(false)
+    }
 
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
     socket.on('message-created', onMessageCreated)
     socket.on('conversation-updated', onConversationUpdated)
+    socket.on('user-updated', onUserUpdated)
+    socket.on('conversation-deleted', onConversationDeleted)
 
     // Check current state after setting up listeners to avoid race condition
     if (socket.connected) {
@@ -248,8 +392,10 @@ export default function ConversationView() {
       socket.off('disconnect', onDisconnect)
       socket.off('message-created', onMessageCreated)
       socket.off('conversation-updated', onConversationUpdated)
+      socket.off('user-updated', onUserUpdated)
+      socket.off('conversation-deleted', onConversationDeleted)
     }
-  }, [])
+  }, [convoId, authUser, user, convoName])
 
   // Scroll to bottom of page when new messages roll in.
   useEffect(() => {
@@ -275,9 +421,41 @@ export default function ConversationView() {
     })
   }, [authUser?.profilePicURL, authUser?.displayName])
 
+  // Update page title when conversation name changes
+  useEffect(() => {
+    if (convoName) {
+      document.title = `${convoName} - ${APP_NAME}`
+    } else {
+      document.title = APP_NAME
+    }
+
+    // Reset title when component unmounts
+    return () => {
+      document.title = APP_NAME
+    }
+  }, [convoName])
+
+  // Show loading indicator only if loading takes more than 500ms
+  useEffect(() => {
+    if (!isLoadingMessages) {
+      setShowLoadingIndicator(false)
+      return
+    }
+
+    const timer = setTimeout(() => {
+      setShowLoadingIndicator(true)
+    }, 500)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [isLoadingMessages])
+
   // Join conversation and fetch messages when connected.
   useEffect(() => {
     if (!isSocketConnected || !convoId) return
+
+    setIsLoadingMessages(true)
 
     // Join the conversation room to receive real-time updates
     socket.emit('join-conversation', { convoId }, (response: any) => {
@@ -289,6 +467,7 @@ export default function ConversationView() {
           Joining a room only means you want to listen for updates to that room,
           it does not validate the room's existence.
         */
+        setIsLoadingMessages(false)
         console.error('Failed to join conversation:', response.error)
         return
       }
@@ -299,6 +478,7 @@ export default function ConversationView() {
           if (response.error?.includes('no conversation')) {
             setDoesChatExist(false)
           }
+          setIsLoadingMessages(false)
           console.error('Failed to fetch messages:', response.error)
           return
         }
@@ -316,6 +496,7 @@ export default function ConversationView() {
             delivered: 'delivered',
           })
         )
+        setIsLoadingMessages(false)
         setMessages(parsedMessages)
         setConvoName(response.data.conversation['name'])
         setDeletionDate(new Date(response.data.deletionDate))
@@ -356,6 +537,17 @@ export default function ConversationView() {
     )
   }
 
+  // If chat doesn't exist, show only the error view
+  if (doesChatExist === false) {
+    return (
+      <ErrorView
+        title={"This is not the converation you're looking for."}
+        message={'This chat has either expired or never existed.'}
+        onBackClick={() => navigate('/')}
+      />
+    )
+  }
+
   return (
     <>
       {shouldEditUser && (
@@ -370,13 +562,7 @@ export default function ConversationView() {
       )}
       <div>
         <NavBar
-          title={
-            doesChatExist === undefined
-              ? 'Loading...'
-              : doesChatExist
-              ? convoName
-              : ''
-          }
+          title={doesChatExist === undefined ? 'Loading...' : convoName}
           subtitle={
             doesChatExist
               ? `${daysRemaining} ${
@@ -385,17 +571,16 @@ export default function ConversationView() {
               : undefined
           }
           onUserClick={() => setShouldEditUser(true)}
-          disableEditProfile={!doesChatExist}
           userName={authUser?.displayName || user.name}
           userAvatar={authUser?.profilePicURL || user.avatar}
           isAnonymous={!authUser}
+          onNotificationToggle={
+            showNotificationButton ? handleNotificationToggle : undefined
+          }
         />
-        {doesChatExist === false ? (
-          <ErrorView
-            title={"This is not the converation you're looking for."}
-            message={'This chat has either expired or never existed.'}
-          />
-        ) : messages.length === 0 ? (
+        {showLoadingIndicator ? (
+          <LoadingIndicator />
+        ) : messages.length === 0 && !isLoadingMessages ? (
           <ShareChat />
         ) : (
           <MessageView
