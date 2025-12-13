@@ -9,6 +9,7 @@ import UserContext, { UserType } from './util/userContext'
 import ConversationView from './pages/Conversation'
 import NewConversation from './pages/NewConversation'
 import Landing from './pages/Landing'
+import About from './pages/About'
 
 function HomePage() {
   const authState = useSelector((state: RootState) => state.auth)
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <HomePage />,
+  },
+  {
+    path: '/about',
+    element: <About />,
   },
   {
     path: '/:convoId',

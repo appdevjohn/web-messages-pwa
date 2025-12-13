@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import styled from 'styled-components'
 import LoginSignup from '../components/LoginSignup'
 import {
@@ -69,7 +70,7 @@ const Title = styled.h1`
 const Tagline = styled.p`
   font-size: 1.05rem;
   line-height: 1.5;
-  margin: 0 auto 1.5rem;
+  margin: 0 auto 0.5rem;
   color: #555;
   font-weight: 400;
   max-width: 42rem;
@@ -77,7 +78,7 @@ const Tagline = styled.p`
   @media (min-width: 40rem) {
     font-size: 1.3rem;
     line-height: 1.6;
-    margin: 0 auto 2.5rem;
+    margin: 0 auto 0.75rem;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -98,6 +99,29 @@ const LandingContainer = styled.div`
   }
 `
 
+const AboutLink = styled(Link)`
+  display: inline-block;
+  margin: 0 0 2rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    opacity: 0.7;
+    text-decoration: underline;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    color: #a39dc9;
+  }
+
+  @media (min-width: 40rem) {
+    margin-bottom: 3rem;
+  }
+`
+
 export default function Landing() {
   return (
     <>
@@ -107,6 +131,7 @@ export default function Landing() {
         <Tagline>
           Create a chat, send a link. No account needed to join.
         </Tagline>
+        <AboutLink to="/about">Learn More →</AboutLink>
       </LandingHeader>
       <LandingContainer>
         <LoginSignup />
