@@ -9,6 +9,7 @@ This application requires a backend service to function. You can find that codeb
 | Name              | Description                           | Example               |
 | ----------------- | ------------------------------------- | --------------------- |
 | VITE_API_BASE_URL | The base URL for the backend service. | http://localhost:8000 |
+| VITE_APP_NAME     | The name of the app.                  | OneTimeChat           |
 
 ## Running on your Local Machine
 
