@@ -183,7 +183,7 @@ export default function About() {
   return (
     <AboutContainer>
       <Header>
-        <LogoBadge>O</LogoBadge>
+        <LogoBadge as="img" src="/icon.png" alt="OneTimeChat logo" />
         <Title>About OneTimeChat</Title>
         <Subtitle>Simple, ephemeral messaging for everyone</Subtitle>
       </Header>

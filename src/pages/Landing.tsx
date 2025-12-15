@@ -126,7 +126,7 @@ export default function Landing() {
   return (
     <>
       <LandingHeader>
-        <LogoBadge>O</LogoBadge>
+        <LogoBadge as="img" src="/icon.png" alt="OneTimeChat logo" />
         <Title>OneTimeChat</Title>
         <Tagline>
           Create a chat, send a link. No account needed to join.
