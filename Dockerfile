@@ -11,8 +11,6 @@ COPY . .
 
 RUN npm run build
 
-ENV PORT=4173
-
-EXPOSE $PORT
+EXPOSE ${PORT:-3000}
 
 CMD ["npm", "run", "preview", "--", "--host=0.0.0.0"]
