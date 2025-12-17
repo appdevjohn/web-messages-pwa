@@ -180,12 +180,12 @@ const Strong = styled.strong`
 `
 
 export default function About() {
-  const appName = import.meta.env.VITE_APP_NAME || "Web Messages"
+  const appName = import.meta.env.VITE_APP_NAME || 'Web Messages'
 
   return (
     <AboutContainer>
       <Header>
-        <LogoBadge as="img" src="/icon.png" alt={`${appName} logo`} />
+        <LogoBadge as='img' src='/icon.png' alt={`${appName} logo`} />
         <Title>About {appName}</Title>
         <Subtitle>Simple, ephemeral messaging for everyone</Subtitle>
       </Header>
@@ -236,7 +236,9 @@ export default function About() {
         <Section>
           <SectionTitle>How It Works</SectionTitle>
           <StepList>
-            <StepItem>An authenticated user creates a new conversation</StepItem>
+            <StepItem>
+              An authenticated user creates a new conversation
+            </StepItem>
             <StepItem>
               A unique conversation link is generated and can be shared
             </StepItem>
