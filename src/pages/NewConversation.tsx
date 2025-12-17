@@ -531,10 +531,12 @@ export default function NewConversation() {
     setConvoName('')
   }
 
+  const appName = import.meta.env.VITE_APP_NAME || "Web Messages"
+
   return (
     <Content>
       <PageHeader>
-        <Brand>OneTimeChat</Brand>
+        <Brand>{appName}</Brand>
         <LogoutButton onClick={handleLogOut} disabled={authState.isLoading}>
           {authState.isLoading ? 'Logging out…' : 'Log Out'}
         </LogoutButton>

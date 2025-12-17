@@ -1,6 +1,6 @@
 {
-  "name": "OneTimeChat",
-  "short_name": "OneTimeChat",
+  "name": "Web Messages",
+  "short_name": "Web Messages",
   "description": "A messaging web application that enables seamless, link-based conversations without barriers to entry",
   "start_url": "/",
   "display": "standalone",

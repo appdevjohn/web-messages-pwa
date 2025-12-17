@@ -180,19 +180,21 @@ const Strong = styled.strong`
 `
 
 export default function About() {
+  const appName = import.meta.env.VITE_APP_NAME || "Web Messages"
+
   return (
     <AboutContainer>
       <Header>
-        <LogoBadge as="img" src="/icon.png" alt="OneTimeChat logo" />
-        <Title>About OneTimeChat</Title>
+        <LogoBadge as="img" src="/icon.png" alt={`${appName} logo`} />
+        <Title>About {appName}</Title>
         <Subtitle>Simple, ephemeral messaging for everyone</Subtitle>
       </Header>
 
       <AboutCard>
         <Section>
-          <SectionTitle>What is OneTimeChat?</SectionTitle>
+          <SectionTitle>What is {appName}?</SectionTitle>
           <Paragraph>
-            OneTimeChat is a messaging web application built for seamless,
+            {appName} is a messaging web application built for seamless,
             link-based conversations without barriers to entry. Create a chat,
             share a link, and start talking - no app downloads or account
             creation required for participants.

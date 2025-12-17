@@ -123,11 +123,13 @@ const AboutLink = styled(Link)`
 `
 
 export default function Landing() {
+  const appName = import.meta.env.VITE_APP_NAME || "Web Messages"
+
   return (
     <>
       <LandingHeader>
-        <LogoBadge as="img" src="/icon.png" alt="OneTimeChat logo" />
-        <Title>OneTimeChat</Title>
+        <LogoBadge as="img" src="/icon.png" alt={`${appName} logo`} />
+        <Title>{appName}</Title>
         <Tagline>
           Create a chat, send a link. No account needed to join.
         </Tagline>
