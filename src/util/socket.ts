@@ -35,7 +35,6 @@ type RefreshQueueItem = {
 
 // Create socket.io client with reconnection settings
 const socket = io(URL, {
-  path: import.meta.env.VITE_SOCKET_PATH || '/socket.io',
   reconnection: true, // Automatically reconnect if connection drops
   reconnectionDelay: 1000, // Wait 1 second between attempts
   timeout: 10000, // 10 second connection timeout
