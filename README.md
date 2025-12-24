@@ -48,10 +48,11 @@ This frontend application provides a complete messaging experience with:
 
 Create a `.env` file in the root directory with these variables:
 
-| Variable          | Description              | Default               | Required |
-| ----------------- | ------------------------ | --------------------- | -------- |
-| VITE_API_BASE_URL | Backend API base URL     | http://localhost:8000 | Yes      |
-| VITE_APP_NAME     | Application display name | Web Messages          | No       |
+| Variable              | Description                  | Default               | Required |
+| --------------------- | ---------------------------- | --------------------- | -------- |
+| VITE_API_BASE_URL     | Backend API base URL         | http://localhost:8000 | Yes      |
+| VITE_SOCKET_BASE_URL  | Socket.IO connection URL     | http://localhost:8000 | Yes      |
+| VITE_APP_NAME         | Application display name     | Web Messages          | No       |
 
 **Note**: Vite requires environment variables to be prefixed with `VITE_` to be exposed to the client.
 
@@ -110,6 +111,7 @@ Run the development container:
 ```bash
 docker run -p 3000:3000 \
     -e VITE_API_BASE_URL=http://localhost:8000 \
+    -e VITE_SOCKET_BASE_URL=http://localhost:8000 \
     -e VITE_APP_NAME="Web Messages" \
     messages-pwa-dev
 ```
@@ -127,6 +129,7 @@ Run the production container:
 ```bash
 docker run -p 3000:3000 \
     -e VITE_API_BASE_URL=http://localhost:8000 \
+    -e VITE_SOCKET_BASE_URL=http://localhost:8000 \
     -e VITE_APP_NAME="Web Messages" \
     messages-pwa
 ```
@@ -201,6 +204,7 @@ Use `.env.local` for local development overrides:
 ```bash
 # .env.local
 VITE_API_BASE_URL=http://localhost:8001
+VITE_SOCKET_BASE_URL=http://localhost:8001
 VITE_APP_NAME="My Chat App"
 ```
 

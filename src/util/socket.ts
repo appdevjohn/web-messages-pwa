@@ -10,8 +10,6 @@
 import axios from 'axios'
 import { io } from 'socket.io-client'
 
-const URL = import.meta.env.VITE_API_BASE_URL
-
 // Type definitions
 type TokenPair = {
   accessToken: string
@@ -34,7 +32,7 @@ type RefreshQueueItem = {
 }
 
 // Create socket.io client with reconnection settings
-const socket = io(URL, {
+const socket = io(import.meta.env.VITE_SOCKET_BASE_URL, {
   path: '/socket.io',
   reconnection: true, // Automatically reconnect if connection drops
   reconnectionDelay: 1000, // Wait 1 second between attempts
@@ -43,7 +41,7 @@ const socket = io(URL, {
 
 // Separate axios client for token refresh requests
 const refreshClient = axios.create({
-  baseURL: URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL,
 })
 
 // State management
