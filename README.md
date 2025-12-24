@@ -48,10 +48,11 @@ This frontend application provides a complete messaging experience with:
 
 Create a `.env` file in the root directory with these variables:
 
-| Variable          | Description              | Default               | Required |
-| ----------------- | ------------------------ | --------------------- | -------- |
-| VITE_API_BASE_URL | Backend API base URL     | http://localhost:8000 | Yes      |
-| VITE_APP_NAME     | Application display name | Web Messages          | No       |
+| Variable          | Description                   | Default               | Required |
+| ----------------- | ----------------------------- | --------------------- | -------- |
+| VITE_API_BASE_URL | Backend API base URL          | http://localhost:8000 | Yes      |
+| VITE_SOCKET_PATH  | Path for Socket.IO connection | /socket.io            | No       |
+| VITE_APP_NAME     | Application display name      | Web Messages          | No       |
 
 **Note**: Vite requires environment variables to be prefixed with `VITE_` to be exposed to the client.
 
