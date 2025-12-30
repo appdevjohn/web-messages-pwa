@@ -1,7 +1,7 @@
 /// <reference types="vite-plugin-svgr/client" />
 
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, Navigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import styled from 'styled-components'
 
@@ -10,6 +10,7 @@ import getDaysRemaining from '../util/daysRemaining'
 import { StoredConversationType } from '../types'
 import { logOut } from '../store/slices/auth'
 import type { RootState, AppDispatch } from '../store/store'
+import AuthLoadingScreen from '../components/AuthLoadingScreen'
 import {
   Card,
   PrimaryButton,
@@ -532,6 +533,14 @@ export default function NewConversation() {
   }
 
   const appName = import.meta.env.VITE_APP_NAME || "Web Messages"
+
+  if (authState.isInitializing) {
+    return <AuthLoadingScreen />
+  }
+
+  if (!isLoggedIn) {
+    return <Navigate to='/auth' replace />
+  }
 
   return (
     <Content>

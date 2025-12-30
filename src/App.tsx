@@ -1,31 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { Provider, useSelector } from 'react-redux'
+import { Provider } from 'react-redux'
 
 import { store } from './store/store'
 import { initializeAuth } from './store/slices/auth'
-import type { RootState } from './store/store'
 import UserContext, { UserType } from './util/userContext'
 import ConversationView from './pages/Conversation'
 import NewConversation from './pages/NewConversation'
 import Landing from './pages/Landing'
 import About from './pages/About'
 
-function HomePage() {
-  const authState = useSelector((state: RootState) => state.auth)
-  const isLoggedIn = Boolean(authState.accessToken)
-
-  if (!isLoggedIn) {
-    return <Landing />
-  }
-
-  return <NewConversation />
-}
-
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <HomePage />,
+    element: <NewConversation />,
+  },
+  {
+    path: '/auth',
+    element: <Landing />,
   },
   {
     path: '/about',
@@ -39,8 +31,13 @@ const router = createBrowserRouter([
 
 function App() {
   const [user, setUser] = useState<UserType>({ name: '', avatar: '' })
+  const didInitAuthRef = useRef(false)
 
   useEffect(() => {
+    if (didInitAuthRef.current) {
+      return
+    }
+    didInitAuthRef.current = true
     store.dispatch(initializeAuth())
   }, [])
 

@@ -29,6 +29,7 @@ export interface AuthState {
   } | null
   accessToken: string | null
   refreshToken: string | null
+  isInitializing: boolean
   isLoading: boolean
   error: string | null
 }
@@ -68,6 +69,7 @@ const initialState: AuthState = {
   user: null,
   accessToken: null,
   refreshToken: null,
+  isInitializing: true,
   isLoading: false,
   error: null,
 }
@@ -205,16 +207,19 @@ export const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken
         saveRefreshToken(action.payload.refreshToken)
       }
+      state.isInitializing = false
       state.isLoading = false
     })
     builder.addCase(initializeAuth.rejected, (state, _action) => {
       state.user = null
       state.accessToken = null
       state.refreshToken = null
+      state.isInitializing = false
       state.isLoading = false
       state.error = null
     })
     builder.addCase(initializeAuth.pending, (state) => {
+      state.isInitializing = true
       state.isLoading = true
     })
     builder.addCase(logIn.fulfilled, (state, action) => {

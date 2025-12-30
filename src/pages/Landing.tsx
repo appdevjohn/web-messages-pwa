@@ -1,10 +1,13 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import styled from 'styled-components'
+import AuthLoadingScreen from '../components/AuthLoadingScreen'
 import LoginSignup from '../components/LoginSignup'
 import {
   IconContainer,
   gradientTextStyle,
 } from '../components/shared/StyledComponents'
+import type { RootState } from '../store/store'
 
 const LandingHeader = styled.header`
   position: relative;
@@ -123,7 +126,18 @@ const AboutLink = styled(Link)`
 `
 
 export default function Landing() {
+  const authState = useSelector((state: RootState) => state.auth)
   const appName = import.meta.env.VITE_APP_NAME || "Web Messages"
+
+  if (authState.isInitializing) {
+    return <AuthLoadingScreen />
+  }
+
+  const isLoggedIn = Boolean(authState.accessToken)
+
+  if (isLoggedIn) {
+    return <Navigate to='/' replace />
+  }
 
   return (
     <>
