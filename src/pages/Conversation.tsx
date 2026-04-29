@@ -492,6 +492,7 @@ export default function ConversationView() {
           userProfilePic: newMessage['senderAvatar'],
           userFullName: newMessage['senderName'],
           delivered: 'delivered',
+          senderType: newMessage['senderType'],
         })
         return messagesCopy
       })
@@ -698,6 +699,7 @@ export default function ConversationView() {
               userProfilePic: msg['senderAvatar'],
               userFullName: msg['senderName'],
               delivered: 'delivered',
+              senderType: msg['senderType'],
             }),
           )
           setIsLoadingMessages(false)
@@ -745,6 +747,7 @@ export default function ConversationView() {
         userName: senderName,
         userAvatar: senderAvatar,
         token: accessToken, // Server should automatically use logged-in user if token is provided
+        aiResponse: messageContent.toLocaleLowerCase().startsWith('@ai'),
       },
       (response: any) => {
         if (!response.success) {
@@ -784,6 +787,7 @@ export default function ConversationView() {
             userProfilePic: msg['senderAvatar'],
             userFullName: msg['senderName'],
             delivered: 'delivered',
+            senderType: msg['senderType'],
           }),
         )
 
@@ -872,60 +876,60 @@ export default function ConversationView() {
           onDismiss={() => setShowRenameDialog(false)}
         />
       )}
-        <ScrollableArea ref={scrollAreaRef}>
-          <ScrollContent>
-            <NavBar
-              title={doesChatExist === undefined ? 'Loading...' : convoName}
-              subtitle={
-                doesChatExist
-                  ? `${daysRemaining} ${
-                      daysRemaining === 1 ? 'day' : 'days'
-                    } remaining`
-                  : undefined
-              }
-              onUserClick={() => setShouldEditUser(true)}
-              userName={authUser?.displayName || user.name}
-              userAvatar={authUser?.profilePicURL || user.avatar}
-              isAnonymous={!authUser}
-              onNotificationToggle={
-                showNotificationButton ? handleNotificationToggle : undefined
-              }
-              onRenameClick={
-                canRenameConversation
-                  ? () => setShowRenameDialog(true)
-                  : undefined
-              }
-            />
-            <MessageContent>
-              {showLoadingIndicator ? (
-                <LoadingIndicator />
-              ) : messages.length === 0 && !isLoadingMessages ? (
-                <ShareChat />
-              ) : (
-                <MessageView
-                  highlightId={authUser?.id || `${user.name}-${user.avatar}`}
-                  isLoadingOlderMessages={isLoadingOlderMessages}
-                  onLoadOlderMessages={handleLoadOlderMessages}
-                  showLoadOlderMessagesButton={pageInfo?.hasMore ?? false}
-                  messages={messages}
-                  typingIndicator={typingIndicatorText}
-                />
-              )}
-            </MessageContent>
-            {!authUser && user.name.length === 0 ? (
-              <SetupProfileButton onClick={() => setShouldEditUser(true)} />
+      <ScrollableArea ref={scrollAreaRef}>
+        <ScrollContent>
+          <NavBar
+            title={doesChatExist === undefined ? 'Loading...' : convoName}
+            subtitle={
+              doesChatExist
+                ? `${daysRemaining} ${
+                    daysRemaining === 1 ? 'day' : 'days'
+                  } remaining`
+                : undefined
+            }
+            onUserClick={() => setShouldEditUser(true)}
+            userName={authUser?.displayName || user.name}
+            userAvatar={authUser?.profilePicURL || user.avatar}
+            isAnonymous={!authUser}
+            onNotificationToggle={
+              showNotificationButton ? handleNotificationToggle : undefined
+            }
+            onRenameClick={
+              canRenameConversation
+                ? () => setShowRenameDialog(true)
+                : undefined
+            }
+          />
+          <MessageContent>
+            {showLoadingIndicator ? (
+              <LoadingIndicator />
+            ) : messages.length === 0 && !isLoadingMessages ? (
+              <ShareChat />
             ) : (
-              <ComposeBox
-                becameActive={() => {}}
-                disableUpload={true}
-                onUploadFile={() => {}}
-                sendMessage={sendMessageHandler}
-                onTyping={handleTyping}
-                keyboardVisible={isKeyboardVisible}
+              <MessageView
+                highlightId={authUser?.id || `${user.name}-${user.avatar}`}
+                isLoadingOlderMessages={isLoadingOlderMessages}
+                onLoadOlderMessages={handleLoadOlderMessages}
+                showLoadOlderMessagesButton={pageInfo?.hasMore ?? false}
+                messages={messages}
+                typingIndicator={typingIndicatorText}
               />
             )}
-          </ScrollContent>
-        </ScrollableArea>
+          </MessageContent>
+          {!authUser && user.name.length === 0 ? (
+            <SetupProfileButton onClick={() => setShouldEditUser(true)} />
+          ) : (
+            <ComposeBox
+              becameActive={() => {}}
+              disableUpload={true}
+              onUploadFile={() => {}}
+              sendMessage={sendMessageHandler}
+              onTyping={handleTyping}
+              keyboardVisible={isKeyboardVisible}
+            />
+          )}
+        </ScrollContent>
+      </ScrollableArea>
     </ConversationLayout>
   )
 }
