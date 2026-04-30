@@ -16,6 +16,7 @@ export type MessageType = {
   userProfilePic: string
   userFullName: string
   delivered: string
+  senderType: string
 }
 
 export type PageInfo = {
