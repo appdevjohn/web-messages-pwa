@@ -6,8 +6,9 @@ import kangarooIcon from '../assets/profile-icons/kangaroo.png'
 import penguinIcon from '../assets/profile-icons/penguin.png'
 import sharkIcon from '../assets/profile-icons/shark.png'
 import snakeIcon from '../assets/profile-icons/snake.png'
+import robotIcon from '../assets/profile-icons/robot.png'
 
-const ICON_MAP: { [key: string]: string } = {
+export const USER_ICON_MAP: { [key: string]: string } = {
   bird: birdIcon,
   dolphin: dolphinIcon,
   fish: fishIcon,
@@ -18,4 +19,8 @@ const ICON_MAP: { [key: string]: string } = {
   snake: snakeIcon,
 }
 
-export default ICON_MAP
+export const SYSTEM_ICON_MAP: { [key: string]: string } = {
+  robot: robotIcon,
+}
+
+export default { ...USER_ICON_MAP, ...SYSTEM_ICON_MAP }

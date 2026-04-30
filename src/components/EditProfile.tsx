@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import styled, { keyframes } from 'styled-components'
 import { UserType } from '../util/userContext'
-import ICON_MAP from '../util/profileIcons'
+import { USER_ICON_MAP } from '../util/profileIcons'
 import restAPI from '../util/rest'
 import type { RootState, AppDispatch } from '../store/store'
 import { updateUserProfile as updateUserProfileAction } from '../store/slices/auth'
@@ -293,7 +293,7 @@ const EditProfile = ({
   const authUser = authState.user
   const [name, setName] = useState(authUser?.displayName || user?.name || '')
   const [avatar, setAvatar] = useState(
-    authUser?.profilePicURL || user?.avatar || ''
+    authUser?.profilePicURL || user?.avatar || '',
   )
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -330,7 +330,7 @@ const EditProfile = ({
           updateUserProfileAction({
             displayName: name,
             profilePicURL: avatar,
-          })
+          }),
         )
         onDismiss()
       } catch (err) {
@@ -373,8 +373,8 @@ const EditProfile = ({
                 ? 'Log In'
                 : 'Sign Up'
               : isFirstTimeUser
-              ? 'Set Your Name'
-              : 'Edit profile'}
+                ? 'Set Your Name'
+                : 'Edit profile'}
           </ModalTitle>
           {viewMode === 'profile' && (
             <IdentityBadge>
@@ -426,13 +426,13 @@ const EditProfile = ({
             <FormSection>
               <FormLabel>Avatar</FormLabel>
               <AvatarGrid>
-                {Object.keys(ICON_MAP).map((a) => (
+                {Object.keys(USER_ICON_MAP).map((a) => (
                   <AvatarContainer key={a}>
                     <AvatarOption
                       $selected={a === avatar}
                       onClick={() => setAvatar(a)}
                     >
-                      <img src={ICON_MAP[a]} alt={a} />
+                      <img src={USER_ICON_MAP[a]} alt={a} />
                     </AvatarOption>
                   </AvatarContainer>
                 ))}

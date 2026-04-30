@@ -1,7 +1,6 @@
 import styled from 'styled-components'
 
 import { MessageType } from '../types'
-import robotIcon from '../assets/robot.png'
 import ICON_MAP from '../util/profileIcons'
 
 const TextBubble = styled.div<{ $highlighted?: boolean; $delivered?: boolean }>`
@@ -148,7 +147,6 @@ type BubbleProps = {
 type BlockProps = {
   senderName: string
   senderIcon: string
-  senderType: string
   highlighted: boolean
   timestamp: Date
   messages: { content: string; type: string; delivered: string; id: string }[]
@@ -249,7 +247,6 @@ const MessageBubble = ({
 const MessageBlock = ({
   senderName,
   senderIcon,
-  senderType,
   highlighted,
   timestamp,
   messages,
@@ -269,10 +266,7 @@ const MessageBlock = ({
   return (
     <Block>
       <BlockSenderImage>
-        <img
-          src={senderType === 'system' ? robotIcon : ICON_MAP[senderIcon]}
-          alt='Profile'
-        />
+        <img src={ICON_MAP[senderIcon]} alt='Profile' />
       </BlockSenderImage>
       <div>
         <BlockSenderName>
@@ -304,7 +298,6 @@ const MessageView = ({
     senderImg: string
     senderName: string
     messages: MessageType[]
-    senderType: string
   }[] = []
   for (let i = 0; i < sortedMessages.length; i++) {
     const message = sortedMessages[i]
@@ -324,7 +317,6 @@ const MessageView = ({
         senderId: message.userId,
         senderImg: message.userProfilePic,
         senderName: message.userFullName,
-        senderType: message.senderType,
         messages: [{ ...message }],
       }
       messageBlocks.push(newBlock)
@@ -360,7 +352,6 @@ const MessageView = ({
             <MessageBlock
               senderName={block.senderName}
               senderIcon={block.senderImg}
-              senderType={block.senderType}
               timestamp={block.messages[0].timestamp}
               messages={block.messages}
               highlighted={block.senderId === highlightId}
