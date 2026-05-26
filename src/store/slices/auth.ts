@@ -101,9 +101,10 @@ export const initializeAuth = createAsyncThunk<
       refreshToken: response.data.refreshToken,
       message: response.data.message,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Don't clear it for network errors (offline, connection drops, etc.)
-    const isNetworkError = !error.response || error.code === 'ERR_NETWORK'
+    const err = error as { response?: unknown; code?: string }
+    const isNetworkError = !err.response || err.code === 'ERR_NETWORK'
 
     if (!isNetworkError) {
       clearRefreshToken()
@@ -123,9 +124,10 @@ export const logIn = createAsyncThunk<
   try {
     const response = await restAPI.put<AuthResponse>('/auth/login', credentials)
     return response.data
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } }; message?: string }
     return rejectWithValue(
-      error.response?.data?.message || error.message || 'Login failed',
+      err.response?.data?.message || err.message || 'Login failed',
     )
   }
 })
@@ -141,9 +143,10 @@ export const signUp = createAsyncThunk<
       signUpData,
     )
     return response.data
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { response?: { data?: { message?: string } }; message?: string }
     return rejectWithValue(
-      error.response?.data?.message || error.message || 'Sign up failed',
+      err.response?.data?.message || err.message || 'Sign up failed',
     )
   }
 })
@@ -225,7 +228,7 @@ export const authSlice = createSlice({
       state.isInitializing = false
       state.isLoading = false
     })
-    builder.addCase(initializeAuth.rejected, (state, _action) => {
+    builder.addCase(initializeAuth.rejected, (state) => {
       state.user = null
       state.accessToken = null
       state.refreshToken = null

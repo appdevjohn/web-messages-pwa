@@ -41,7 +41,7 @@ const failedQueue: FailedRequest[] = []
 
 const setAuthorizationHeader = (config: AxiosRequestConfig, token: string) => {
   if (config.headers && 'set' in config.headers) {
-    ;(config.headers as AxiosHeaders).set('Authorization', `Bearer ${token}`)
+    (config.headers as AxiosHeaders).set('Authorization', `Bearer ${token}`)
     return
   }
 

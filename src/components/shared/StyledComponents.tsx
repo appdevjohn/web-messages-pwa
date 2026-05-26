@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components'
 
-// Common gradient mixins
+// Common gradient mixins — CSS template literals exported alongside components; fast-refresh limitation is acceptable here
+// eslint-disable-next-line react-refresh/only-export-components
 export const primaryGradient = css`
   background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
 
@@ -9,6 +10,7 @@ export const primaryGradient = css`
   }
 `
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const gradientTextStyle = css`
   background: linear-gradient(135deg, var(--accent-color) 0%, #5a5479 100%);
   -webkit-background-clip: text;

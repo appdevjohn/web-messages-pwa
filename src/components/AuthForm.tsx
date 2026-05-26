@@ -89,10 +89,11 @@ function ForgotPasswordForm({
     try {
       await restAPI.put('/auth/request-new-password', { email: email.trim() })
       setResetSuccess(true)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string }
       setResetError(
-        error.response?.data?.message ||
-          error.message ||
+        err.response?.data?.message ||
+          err.message ||
           'Password reset request failed',
       )
     } finally {
@@ -179,10 +180,11 @@ function ResetPasswordForm({ resetToken }: ResetPasswordFormProps) {
         newPassword: password,
       })
       setSuccess(true)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } }; message?: string }
       setFormError(
-        error.response?.data?.message ||
-          error.message ||
+        err.response?.data?.message ||
+          err.message ||
           'Password reset failed. The link may have expired.',
       )
     } finally {

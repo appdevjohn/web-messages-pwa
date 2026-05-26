@@ -7,7 +7,7 @@ import styled from 'styled-components'
 
 import socket from '../util/socket'
 import getDaysRemaining from '../util/daysRemaining'
-import { StoredConversationType } from '../types'
+import { StoredConversationType, SocketResponse } from '../types'
 import { logOut } from '../store/slices/auth'
 import type { RootState, AppDispatch } from '../store/store'
 import AuthLoadingScreen from '../components/AuthLoadingScreen'
@@ -363,7 +363,7 @@ export default function NewConversation() {
   const [previousConvos, setPreviousConvos] = useState<
     StoredConversationType[]
   >([])
-  const [_, setIsFetchingConvos] = useState(false) // Unused but kept for potential future use
+  const [, setIsFetchingConvos] = useState(false)
   const [convoError, setConvoError] = useState<string | null>(null)
   const [isCreatingConvo, setIsCreatingConvo] = useState(false)
 
@@ -456,7 +456,7 @@ export default function NewConversation() {
           return
         }
 
-        const normalized = normalizeConversations(ackResponse.data as any)
+        const normalized = normalizeConversations(ackResponse.data as Parameters<typeof normalizeConversations>[0])
         setPreviousConvos(normalized)
         setConvoError(null)
       })
@@ -508,7 +508,7 @@ export default function NewConversation() {
         name: convoName.trim(),
         token: authState.accessToken || undefined,
       },
-      (response: any) => {
+      (response: SocketResponse<{ conversation: { id: string } }>) => {
         clearTimeout(timeoutId)
 
         // Ignore response if we've already timed out
@@ -525,7 +525,7 @@ export default function NewConversation() {
           return
         }
 
-        const conversation = response.data.conversation
+        const conversation = response.data!.conversation
         setConvoName('')
         fetchConversations()
         navigate(`/${conversation.id}`)
@@ -569,7 +569,7 @@ export default function NewConversation() {
         convoId,
         token: '',
       },
-      (response: any) => {
+      (response: SocketResponse) => {
         if (response?.success) {
           fetchConversations()
         } else {
@@ -593,7 +593,7 @@ export default function NewConversation() {
         convoId,
         token: authState.accessToken || '',
       },
-      (response: any) => {
+      (response: SocketResponse) => {
         if (response?.success) {
           // Refresh the conversation list
           fetchConversations()

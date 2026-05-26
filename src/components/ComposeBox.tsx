@@ -204,7 +204,7 @@ const ComposeBox = ({
             <StyledUploadButton
               disabled={disableUpload}
               onClick={() => {
-                uploadRef.current && uploadRef.current.click()
+                if (uploadRef.current) uploadRef.current.click()
               }}
             >
               <FileUploadIcon style={{ transform: 'translateY(1px)' }} />
@@ -233,7 +233,7 @@ const ComposeBox = ({
                       inputRef.current.style.height = '44px'
                     }
                   }, 0)
-                  inputRef.current && inputRef.current.focus()
+                  if (inputRef.current) inputRef.current.focus()
                 }
               }
             }}

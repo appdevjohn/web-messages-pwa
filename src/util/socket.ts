@@ -232,7 +232,7 @@ socket.emit = ((event: string, ...args: unknown[]) => {
           const tokens = await requestTokenRefresh()
           attemptEmit(attempt + 1, tokens.accessToken)
           return
-        } catch (refreshError) {
+        } catch {
           // If refresh fails, call original callback with error
           ack(...ackArgs)
           return

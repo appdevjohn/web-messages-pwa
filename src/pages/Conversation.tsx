@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux'
 import { useParams, useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 
-import { MessageType, PageInfo } from '../types'
+import { MessageType, PageInfo, SocketResponse } from '../types'
 import getDaysRemaining from '../util/daysRemaining'
 import socket from '../util/socket'
 import UserContext from '../util/userContext'
@@ -33,6 +33,14 @@ import {
 } from '../components/shared/StyledComponents'
 
 const APP_NAME = import.meta.env.VITE_APP_NAME || 'Web Messages'
+
+type RawMessage = Record<string, string>
+type MessagesListData = {
+  messages: RawMessage[]
+  conversation: Record<string, string>
+  deletionDate: string
+  pageInfo?: PageInfo
+}
 
 const ConversationLayout = styled.div`
   position: fixed;
@@ -442,7 +450,7 @@ export default function ConversationView() {
   useEffect(() => {
     const onConnect = () => setIsSocketConnected(true)
     const onDisconnect = () => setIsSocketConnected(false)
-    const onMessageCreated = (payload: any) => {
+    const onMessageCreated = (payload: { convoId: string; message: Record<string, string> }) => {
       const newMessageConvoId = payload.convoId
       if (newMessageConvoId !== convoId) return // Ignore messages for other conversations
 
@@ -497,12 +505,12 @@ export default function ConversationView() {
         return messagesCopy
       })
     }
-    const onConversationUpdated = (payload: any) => {
+    const onConversationUpdated = (payload: { conversation: Record<string, string>; deletionDate: string }) => {
       setConvoName(payload.conversation['name'])
       setConvoCreatorId(payload.conversation['creatorId'] || null)
       setDeletionDate(new Date(payload.deletionDate))
     }
-    const onUserUpdated = (payload: any) => {
+    const onUserUpdated = (payload: { convoId: string; userId: string; displayName: string; profilePicURL: string }) => {
       const updatedConvoId = payload.convoId
       if (updatedConvoId !== convoId) return // Ignore updates for other conversations
 
@@ -521,7 +529,7 @@ export default function ConversationView() {
         })
       })
     }
-    const onConversationDeleted = (payload: any) => {
+    const onConversationDeleted = (payload: { convoId: string }) => {
       const deletedConvoId = payload.convoId
       if (deletedConvoId !== convoId) return // Ignore deletions for other conversations
 
@@ -531,7 +539,7 @@ export default function ConversationView() {
       setDeletionDate(undefined)
       setDoesChatExist(false)
     }
-    const onUserTyping = (payload: any) => {
+    const onUserTyping = (payload: { convoId: string; userName: string }) => {
       if (payload.convoId !== convoId) return
       const { userName } = payload
 
@@ -619,7 +627,7 @@ export default function ConversationView() {
         return msg
       })
     })
-  }, [authUser?.profilePicURL, authUser?.displayName])
+  }, [authUser])
 
   // Update page title when conversation name changes
   useEffect(() => {
@@ -659,7 +667,7 @@ export default function ConversationView() {
     setPageInfo(null)
 
     // Join the conversation room to receive real-time updates
-    socket.emit('join-conversation', { convoId }, (response: any) => {
+    socket.emit('join-conversation', { convoId }, (response: SocketResponse) => {
       if (!response.success) {
         /*
           IMPORTANT:
@@ -677,7 +685,7 @@ export default function ConversationView() {
       socket.emit(
         'list-messages',
         { convoId, token: '', limit: 50 },
-        (response: any) => {
+        (response: SocketResponse<MessagesListData>) => {
           if (!response.success) {
             if (response.error?.includes('no conversation')) {
               setDoesChatExist(false)
@@ -687,8 +695,8 @@ export default function ConversationView() {
             return
           }
 
-          const parsedMessages: MessageType[] = response.data.messages.map(
-            (msg: any) => ({
+          const parsedMessages: MessageType[] = response.data!.messages.map(
+            (msg) => ({
               id: msg['id'],
               userId:
                 msg['senderId'] ||
@@ -704,12 +712,12 @@ export default function ConversationView() {
           )
           setIsLoadingMessages(false)
           setMessages(parsedMessages)
-          setConvoName(response.data.conversation['name'])
-          setConvoCreatorId(response.data.conversation['creatorId'] || null)
-          setDeletionDate(new Date(response.data.deletionDate))
+          setConvoName(response.data!.conversation['name'])
+          setConvoCreatorId(response.data!.conversation['creatorId'] || null)
+          setDeletionDate(new Date(response.data!.deletionDate))
           setDoesChatExist(true)
-          if (response.data.pageInfo) {
-            setPageInfo(response.data.pageInfo)
+          if (response.data!.pageInfo) {
+            setPageInfo(response.data!.pageInfo)
           }
         },
       )
@@ -749,7 +757,7 @@ export default function ConversationView() {
         token: accessToken, // Server should automatically use logged-in user if token is provided
         aiResponse: messageContent.toLocaleLowerCase().startsWith('@ai'),
       },
-      (response: any) => {
+      (response: SocketResponse) => {
         if (!response.success) {
           console.error('Failed to send message:', response.error)
           // TODO: Show error to user
@@ -768,7 +776,7 @@ export default function ConversationView() {
     socket.emit(
       'list-messages',
       { convoId, token: '', limit: 50, before: pageInfo.startCursor },
-      (response: any) => {
+      (response: SocketResponse<MessagesListData>) => {
         setIsLoadingOlderMessages(false)
 
         if (!response.success) {
@@ -776,8 +784,8 @@ export default function ConversationView() {
           return
         }
 
-        const olderMessages: MessageType[] = response.data.messages.map(
-          (msg: any) => ({
+        const olderMessages: MessageType[] = response.data!.messages.map(
+          (msg) => ({
             id: msg['id'],
             userId:
               msg['senderId'] || `${msg['senderName']}-${msg['senderAvatar']}`,
@@ -792,8 +800,8 @@ export default function ConversationView() {
         )
 
         setMessages((prev) => [...olderMessages, ...prev])
-        if (response.data.pageInfo) {
-          setPageInfo(response.data.pageInfo)
+        if (response.data!.pageInfo) {
+          setPageInfo(response.data!.pageInfo)
         }
       },
     )
@@ -813,7 +821,7 @@ export default function ConversationView() {
           name: newName,
           token: accessToken,
         },
-        (response: any) => {
+        (response: SocketResponse<{ conversation: Record<string, string>; deletionDate: string }>) => {
           if (!response.success) {
             reject(
               new Error(response.error || 'Failed to rename conversation.'),
@@ -822,9 +830,9 @@ export default function ConversationView() {
           }
 
           // Update local state with the new conversation data
-          setConvoName(response.data.conversation['name'])
-          setConvoCreatorId(response.data.conversation['creatorId'] || null)
-          setDeletionDate(new Date(response.data.deletionDate))
+          setConvoName(response.data!.conversation['name'])
+          setConvoCreatorId(response.data!.conversation['creatorId'] || null)
+          setDeletionDate(new Date(response.data!.deletionDate))
 
           resolve()
         },

@@ -26,8 +26,14 @@ export type PageInfo = {
 }
 
 export type MessagesPayloadType = {
-  messages: any[]
-  conversation: any
+  messages: unknown[]
+  conversation: unknown
   deletionDate: Date
   pageInfo: PageInfo
+}
+
+export type SocketResponse<T = Record<string, unknown>> = {
+  success: boolean
+  error?: string
+  data?: T
 }

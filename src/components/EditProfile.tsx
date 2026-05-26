@@ -533,6 +533,7 @@ const EditProfile = ({
                           userProfilePic: previousAvatar,
                           userFullName: previousName,
                           delivered: 'delivered',
+                          senderType: 'user',
                         },
                         {
                           id: 'preview-message-2',
@@ -543,6 +544,7 @@ const EditProfile = ({
                           userProfilePic: avatar,
                           userFullName: name,
                           delivered: 'delivered',
+                          senderType: 'user',
                         },
                       ]}
                     />

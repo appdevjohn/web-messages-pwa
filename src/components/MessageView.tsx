@@ -251,7 +251,7 @@ const MessageBlock = ({
   timestamp,
   messages,
 }: BlockProps) => {
-  let messageBubbles = messages.map((message) => {
+  const messageBubbles = messages.map((message) => {
     return (
       <MessageBubble
         content={message.content}
